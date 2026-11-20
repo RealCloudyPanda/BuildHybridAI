@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import App from "../src/App";
 import { saveSettings } from "../src/store/settings";
 import { runEngine } from "../src/engine/run";
+import { EngineError } from "../src/engine/errors";
 import { EXAMPLES, FIXTURES } from "../src/fixtures/examples";
 
 vi.mock("../src/engine/run", () => ({ runEngine: vi.fn() }));
@@ -39,4 +40,14 @@ it("routes a sensitive clarification to Local-only even with ordinary notes", as
   fireEvent.click(screen.getByRole("button", { name: "Update report" }));
   expect(vi.mocked(runEngine).mock.calls.map(([, privacy]) => privacy)).toEqual(["hybrid", "local-only"]);
   expect(await screen.findByText(/On device ·/)).toBeInTheDocument();
+});
+
+it("keeps the Report tab selected when the first run fails", async () => {
+  vi.mocked(runEngine).mockRejectedValueOnce(new EngineError("device-unavailable"));
+  render(<App />);
+  fireEvent.click(await screen.findByRole("button", { name: "Notes with internal details" }));
+  fireEvent.click(screen.getByRole("button", { name: /Write report/ }));
+  const alert = await screen.findByRole("alert");
+  expect(alert.closest(".shell")).toHaveAttribute("data-tab", "report");
+  expect(screen.getByRole("tab", { name: "Report" })).toHaveAttribute("aria-selected", "true");
 });

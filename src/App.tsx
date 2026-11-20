@@ -159,7 +159,7 @@ export default function App() {
         }
         tab={tab}
         onTab={setTab}
-        showReportTab={!!active.report || !!running[active.id]}
+        showReportTab={!!active.report || !!running[active.id] || !!errors[active.id]}
       />
       <Toasts items={toasts} />
       {settingsOpen && <SettingsDrawer settings={settings} onClose={() => setSettingsOpen(false)} />}
