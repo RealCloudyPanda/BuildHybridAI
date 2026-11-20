@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Answer, Draft } from "../domain/types";
 import { IconQuestion } from "./icons";
 
@@ -13,7 +13,6 @@ interface Props {
 export function MissingInfo({ draft, showExampleFill, exampleAnswers, running, onSubmit }: Props) {
   const questions = draft.report?.missing_info ?? [];
   const [values, setValues] = useState<string[]>(() => questions.map(() => ""));
-  useEffect(() => setValues(questions.map(() => "")), [draft.id, draft.lastRun?.at]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!questions.length && !draft.answers.length) return null;
   const filled = values.some((v) => v.trim());

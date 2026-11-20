@@ -145,6 +145,7 @@ export default function App() {
             summary={<InventionSummary count={flags.length} onSimulate={!live ? simulate : undefined} />}
             below={
               <MissingInfo
+                key={`${active.id}:${active.lastRun?.at ?? ""}`}
                 draft={active}
                 running={!!running[active.id]}
                 showExampleFill={showExampleFill}
