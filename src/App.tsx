@@ -4,6 +4,8 @@ import { Shell } from "./components/Shell";
 import { NotesPane } from "./components/NotesPane";
 import { ReportPane, type Running } from "./components/ReportPane";
 import { DraftsRail } from "./components/DraftsRail";
+import { EnginePanel } from "./components/EnginePanel";
+import { SettingsDrawer } from "./components/SettingsDrawer";
 import { MissingInfo } from "./components/MissingInfo";
 import { E2_EXAMPLE_ANSWERS } from "./fixtures/examples";
 import { loadSettings } from "./store/settings";
@@ -21,6 +23,8 @@ export default function App() {
   const live = !!settings.firebaseConfig;
   const { drafts, active, activeId, setActiveId, update, create, remove } = useDrafts();
   const [railOpen, setRailOpen] = useState(false);
+  const [engineOpen, setEngineOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [tab, setTab] = useState<"notes" | "report">("notes");
   const [running, setRunning] = useState<Record<string, Running>>({});
   const [errors, setErrors] = useState<Record<string, EngineError | null>>({});
@@ -94,7 +98,10 @@ export default function App() {
 
   return (
     <>
-      <Header live={live} deviceChip={null} onOpenSettings={() => {}} onToggleRail={() => setRailOpen((o) => !o)} />
+      <Header
+        live={live}
+        deviceChip={<EnginePanel live={live} settings={settings} lastRun={active.lastRun} open={engineOpen} onToggle={() => setEngineOpen((o) => !o)} onClose={() => setEngineOpen(false)} />}
+        onOpenSettings={() => setSettingsOpen(true)} onToggleRail={() => setRailOpen((o) => !o)} />
       <Shell
         rail={
           <DraftsRail
@@ -115,7 +122,7 @@ export default function App() {
             error={errors[active.id] ?? null}
             onEdit={onEdit}
             onToggleLock={onToggleLock}
-            onOpenEngine={() => {}}
+            onOpenEngine={() => setEngineOpen(true)}
             onRetry={() => run(active)}
             onSwitchHybrid={() => update(active.id, { privacy: "hybrid", privacyOverride: true })}
             renderPreview={renderPreview}
@@ -135,6 +142,7 @@ export default function App() {
         onTab={setTab}
         showReportTab={!!active.report || !!running[active.id]}
       />
+      {settingsOpen && <SettingsDrawer settings={settings} onClose={() => setSettingsOpen(false)} />}
     </>
   );
 }
