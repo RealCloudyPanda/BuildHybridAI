@@ -1,4 +1,5 @@
 import "fake-indexeddb/auto";
+import { clear } from "idb-keyval";
 import { render, screen, fireEvent } from "@testing-library/react";
 import App from "../src/App";
 import { saveSettings } from "../src/store/settings";
@@ -8,7 +9,8 @@ import { EXAMPLES, FIXTURES } from "../src/fixtures/examples";
 
 vi.mock("../src/engine/run", () => ({ runEngine: vi.fn() }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await clear();
   vi.mocked(runEngine).mockReset().mockResolvedValue({
     report: FIXTURES.vague, source: "on_device", ms: 1, availabilityBefore: "available",
   });
@@ -50,4 +52,18 @@ it("keeps the Report tab selected when the first run fails", async () => {
   const alert = await screen.findByRole("alert");
   expect(alert.closest(".shell")).toHaveAttribute("data-tab", "report");
   expect(screen.getByRole("tab", { name: "Report" })).toHaveAttribute("aria-selected", "true");
+});
+
+it("retries an update with the clarification that was submitted before the failure", async () => {
+  render(<App />);
+  fireEvent.click(await screen.findByRole("button", { name: "Vague notes" }));
+  fireEvent.click(screen.getByRole("button", { name: /Write report/ }));
+  const answer = await screen.findByRole("textbox", { name: /Which browser and device/ });
+  vi.mocked(runEngine).mockRejectedValueOnce(new EngineError("network"));
+  fireEvent.change(answer, { target: { value: "Chrome on Mac" } });
+  fireEvent.click(screen.getByRole("button", { name: "Update report" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+  expect(runEngine).toHaveBeenCalledTimes(3);
+  expect(vi.mocked(runEngine).mock.calls[2][0].answers).toEqual(vi.mocked(runEngine).mock.calls[1][0].answers);
+  expect(await screen.findByText(/On device ·/)).toBeInTheDocument();
 });

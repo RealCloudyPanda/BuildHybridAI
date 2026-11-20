@@ -46,7 +46,7 @@ export default function App() {
       // Check what will actually be sent, regardless of the debounced notes preview.
       const privacy = d.privacy === "hybrid" && !d.privacyOverride && scanSensitive(buildPrompt(input)).length
         ? "local-only" : d.privacy;
-      if (privacy !== d.privacy) update(id, { privacy });
+      if (privacy !== d.privacy || answers !== d.answers) update(id, { privacy, answers });
       setRunning((r) => ({ ...r, [id]: { startedAt: Date.now(), privacy, live } }));
       setErrors((e) => ({ ...e, [id]: null }));
       setTab("report");
