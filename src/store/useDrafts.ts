@@ -7,14 +7,21 @@ export const AUTOSAVE_MS = 400;
 /** Holds all drafts and the active one; persists edits to IndexedDB after a 400 ms debounce. */
 export function useDrafts() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const currentDrafts = useRef<Draft[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const pending = useRef(new Map<string, Draft>());
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const publish = useCallback((next: Draft[]) => {
+    currentDrafts.current = next;
+    setDrafts(next);
+  }, []);
+
   const flush = useCallback(async () => {
     const items = [...pending.current.values()];
     pending.current.clear();
+    if (timer.current !== null) clearTimeout(timer.current);
     timer.current = null;
     await Promise.all(items.map(saveDraft));
   }, []);
@@ -27,7 +34,7 @@ export function useDrafts() {
         const d = newDraft();
         ds = [d];
       }
-      setDrafts(ds);
+      publish(ds);
       setActiveId(ds[0].id);
       setLoaded(true);
     });
@@ -36,8 +43,9 @@ export function useDrafts() {
     return () => {
       alive = false;
       window.removeEventListener("pagehide", onHide);
+      if (timer.current !== null) clearTimeout(timer.current);
     };
-  }, [flush]);
+  }, [flush, publish]);
 
   const schedule = useCallback(
     (d: Draft) => {
@@ -50,44 +58,42 @@ export function useDrafts() {
 
   const update = useCallback(
     (id: string, patch: Partial<Draft> | ((d: Draft) => Partial<Draft>)) => {
-      setDrafts((ds) => {
-        const next = ds.map((d) => {
-          if (d.id !== id) return d;
-          const p = typeof patch === "function" ? patch(d) : patch;
-          const nd = { ...d, ...p, updatedAt: Date.now() };
-          schedule(nd);
-          return nd;
-        });
-        return next.sort((a, b) => b.updatedAt - a.updatedAt);
-      });
+      const d = currentDrafts.current.find((draft) => draft.id === id);
+      if (!d) return;
+      const p = typeof patch === "function" ? patch(d) : patch;
+      const next = { ...d, ...p, updatedAt: Date.now() };
+      publish(currentDrafts.current.map((draft) => draft.id === id ? next : draft)
+        .sort((a, b) => b.updatedAt - a.updatedAt));
+      schedule(next);
     },
-    [schedule],
+    [publish, schedule],
   );
 
   const create = useCallback(
     (d: Draft = newDraft()) => {
-      setDrafts((ds) => [d, ...ds]);
+      publish([d, ...currentDrafts.current]);
       setActiveId(d.id);
       schedule(d);
       return d;
     },
-    [schedule],
+    [publish, schedule],
   );
 
   const remove = useCallback(async (id: string) => {
+    const rest = currentDrafts.current.filter((d) => d.id !== id);
+    if (rest.length === currentDrafts.current.length) return;
+    if (rest.length === 0) {
+      const replacement = newDraft();
+      rest.push(replacement);
+      schedule(replacement);
+    }
+    // Make late events ignore this draft before yielding to IndexedDB.
+    publish(rest);
+    setActiveId((cur) => (cur === id ? rest[0].id : cur));
     pending.current.delete(id);
+    // IndexedDB applies any already-dispatched write to this store before this delete.
     await deleteDraft(id);
-    setDrafts((ds) => {
-      const rest = ds.filter((d) => d.id !== id);
-      if (rest.length === 0) {
-        const d = newDraft();
-        void saveDraft(d);
-        rest.push(d);
-      }
-      setActiveId((cur) => (cur === id ? rest[0].id : cur));
-      return rest;
-    });
-  }, []);
+  }, [publish, schedule]);
 
   const active = drafts.find((d) => d.id === activeId) ?? null;
   return { drafts, active, activeId, setActiveId, update, create, remove, loaded, flush };
