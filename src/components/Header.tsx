@@ -33,7 +33,7 @@ export function Header({ live, deviceChip, offlineChip, onOpenSettings, onToggle
       {deviceChip}
       {offlineChip}
       <span className="hdr-spacer" />
-      <a className="hdr-link hide-sm" href="/demo-shop/" target="_blank" rel="noopener">
+      <a className="hdr-link hide-sm" href="/demo-shop/index.html" target="_blank" rel="noopener">
         Demo shop <IconExternal width={12} height={12} style={{ verticalAlign: "-1px" }} />
       </a>
       <button type="button" className="icon-btn" aria-label="Settings" onClick={onOpenSettings}>
