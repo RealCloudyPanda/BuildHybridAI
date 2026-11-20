@@ -1,0 +1,3 @@
+# 0001: Instructions go inline in one prompt, not in systemInstruction
+
+Firebase AI Logic's on-device path (`ChromeAdapterImpl`) sends only `request.contents` to Chrome's Prompt API and silently drops `systemInstruction` and `generationConfig`. So we build one self-contained user prompt (instructions + notes + answers + locked fields) and send the same string to both the on-device and the cloud model. The cost: we lose the cloud's system-role weighting and spend instruction tokens out of the ~4096 on-device budget. The gain: both sources see identical input, so their reports can be compared and a hybrid fallback doesn't change behaviour.

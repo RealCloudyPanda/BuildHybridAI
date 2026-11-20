@@ -1,0 +1,3 @@
+# 0003: Firebase config is pasted at runtime, and Sample mode needs no AI at all
+
+The repo ships with no Firebase config, env vars or keys. The owner (or a judge) pastes a Firebase web config and an App Check debug token / site key into Settings, and these are kept only in `localStorage`. Without a config, the app runs a clearly labelled, deterministic, rule-based Sample engine instead of AI, so judges can click through every screen. The cost: the hosted URL shows Sample mode unless a visitor brings their own Firebase project, so live hybrid inference has to be shown in the video. Faking a config to run Gemini Nano without a project was rejected as misleading (GRILL Q23).
