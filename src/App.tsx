@@ -6,6 +6,8 @@ import { ReportPane, type Running } from "./components/ReportPane";
 import { DraftsRail } from "./components/DraftsRail";
 import { EnginePanel } from "./components/EnginePanel";
 import { SettingsDrawer } from "./components/SettingsDrawer";
+import { ExportBar } from "./components/ExportBar";
+import { Toasts } from "./components/Toast";
 import { MissingInfo } from "./components/MissingInfo";
 import { E2_EXAMPLE_ANSWERS } from "./fixtures/examples";
 import { loadSettings } from "./store/settings";
@@ -25,6 +27,12 @@ export default function App() {
   const [railOpen, setRailOpen] = useState(false);
   const [engineOpen, setEngineOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toasts, setToasts] = useState<{ id: number; text: string }[]>([]);
+  const toast = useCallback((text: string) => {
+    const id = Date.now() + Math.random();
+    setToasts((t) => [...t, { id, text }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2400);
+  }, []);
   const [tab, setTab] = useState<"notes" | "report">("notes");
   const [running, setRunning] = useState<Record<string, Running>>({});
   const [errors, setErrors] = useState<Record<string, EngineError | null>>({});
@@ -136,12 +144,16 @@ export default function App() {
                 onSubmit={(answers) => run(active, answers)}
               />
             }
+            footer={
+              active.report && <ExportBar report={active.report} source={active.lastRun?.source} onCopied={toast} />
+            }
           />
         }
         tab={tab}
         onTab={setTab}
         showReportTab={!!active.report || !!running[active.id]}
       />
+      <Toasts items={toasts} />
       {settingsOpen && <SettingsDrawer settings={settings} onClose={() => setSettingsOpen(false)} />}
     </>
   );

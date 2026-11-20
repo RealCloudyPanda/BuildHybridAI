@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`export > formats E1 as Markdown 1`] = `
+"## Category filter resets to All after returning from a product page
+
+**Steps to reproduce**
+1. Open the Trailhead Supply demo shop.
+2. Select the "Tents" category chip.
+3. Click the "Ridgeline 2P" tent to open its detail page.
+4. Press the browser Back button.
+
+**Expected**
+The list still shows only tents, with the Tents chip selected.
+
+**Actual**
+The list shows all products and the Tents chip is no longer selected.
+
+**Environment**
+- Chrome on Mac
+
+**Open questions**
+- Which Chrome version were you using? (You can find it at chrome://version.)
+
+_Written with Repro Offline (source: On device)_"
+`;

@@ -22,6 +22,7 @@ interface Props {
   renderPreview?: (field: Field, index?: number) => ReactNode | undefined;
   summary?: ReactNode;
   below?: ReactNode;
+  footer?: ReactNode;
 }
 
 function Elapsed({ since }: { since: number }) {
@@ -79,7 +80,7 @@ export function ReportPane(p: Props) {
   );
 }
 
-function ReportCard({ draft, report, onEdit, onToggleLock, renderPreview, summary, below }: Props & { report: Report }) {
+function ReportCard({ draft, report, onEdit, onToggleLock, renderPreview, summary, below, footer }: Props & { report: Report }) {
   const locked = (f: Field) => draft.locked.includes(f);
   const run = draft.lastRun;
   return (
@@ -97,8 +98,9 @@ function ReportCard({ draft, report, onEdit, onToggleLock, renderPreview, summar
         <EditableField field="expected" label="Expected" index={2} value={report.expected} locked={locked("expected")} onChange={(v) => onEdit("expected", v)} onToggleLock={onToggleLock} preview={renderPreview?.("expected")} />
         <EditableField field="actual" label="Actual" index={3} value={report.actual} locked={locked("actual")} onChange={(v) => onEdit("actual", v)} onToggleLock={onToggleLock} preview={renderPreview?.("actual")} />
         <EnvironmentEditor env={report.environment} locked={locked("environment")} onChange={(e) => onEdit("environment", e)} onToggleLock={onToggleLock} renderPreview={renderPreview} />
-        {below}
+        {footer}
       </article>
+      {below}
     </>
   );
 }
