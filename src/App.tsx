@@ -3,6 +3,8 @@ import { Header } from "./components/Header";
 import { Shell } from "./components/Shell";
 import { NotesPane } from "./components/NotesPane";
 import { ReportPane, type Running } from "./components/ReportPane";
+import { MissingInfo } from "./components/MissingInfo";
+import { E2_EXAMPLE_ANSWERS } from "./fixtures/examples";
 import { loadSettings } from "./store/settings";
 import { useDrafts } from "./store/useDrafts";
 import { runEngine } from "./engine/run";
@@ -73,6 +75,15 @@ export default function App() {
             onOpenEngine={() => {}}
             onRetry={() => run(active)}
             onSwitchHybrid={() => update(active.id, { privacy: "hybrid", privacyOverride: true })}
+            below={
+              <MissingInfo
+                draft={active}
+                running={!!running[active.id]}
+                showExampleFill={!live && active.exampleId === "vague"}
+                exampleAnswers={E2_EXAMPLE_ANSWERS}
+                onSubmit={(answers) => run(active, answers)}
+              />
+            }
           />
         }
         tab={tab}
