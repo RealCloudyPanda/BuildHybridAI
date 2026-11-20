@@ -357,3 +357,5 @@ textarea.input { height: auto; padding: 10px 12px; resize: vertical; font-family
   .ticket { padding: 18px; }
   .popover { left: 12px !important; right: 12px; width: auto; }
 }
+.env-chip .flag-pop { left: auto; right: -40px; transform-origin: top right; }
+@media (max-width: 759px) { .wordmark { font-size: var(--t-15); } .hdr { overflow: hidden; } }

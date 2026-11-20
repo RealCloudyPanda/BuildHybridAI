@@ -27,7 +27,7 @@ export function Header({ live, deviceChip, offlineChip, onOpenSettings, onToggle
         </span>
       ) : (
         <span className="chip chip-sample" title="No Firebase config. Reports come from a rule-based engine with no AI.">
-          Sample mode: no AI
+          Sample<span className="hide-sm"> mode: no AI</span>
         </span>
       )}
       {deviceChip}
