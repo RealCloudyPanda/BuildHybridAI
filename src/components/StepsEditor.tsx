@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Field } from "../domain/report";
 import { LockButton } from "./EditableField";
 import { IconDown, IconPlus, IconUp, IconX } from "./icons";
@@ -8,9 +9,10 @@ interface Props {
   index: number;
   onChange: (steps: string[]) => void;
   onToggleLock: (f: Field) => void;
+  renderPreview?: (field: Field, index?: number) => ReactNode | undefined;
 }
 
-export function StepsEditor({ steps, locked, index, onChange, onToggleLock }: Props) {
+export function StepsEditor({ steps, locked, index, onChange, onToggleLock, renderPreview }: Props) {
   const set = (i: number, v: string) => onChange(steps.map((s, j) => (j === i ? v : s)));
   const move = (i: number, d: -1 | 1) => {
     const next = [...steps];
@@ -28,7 +30,9 @@ export function StepsEditor({ steps, locked, index, onChange, onToggleLock }: Pr
       <ol className="steps" aria-labelledby="steps-label">
         {steps.map((s, i) => (
           <li className="step" key={i}>
-            <textarea rows={1} className="edit" aria-label={`Step ${i + 1}`} value={s} onChange={(e) => set(i, e.target.value)} />
+            {renderPreview?.("steps", i) ?? (
+              <textarea rows={1} className="edit" aria-label={`Step ${i + 1}`} value={s} onChange={(e) => set(i, e.target.value)} />
+            )}
             <span className="step-tools">
               <button type="button" className="icon-btn sm" aria-label={`Move step ${i + 1} up`} disabled={i === 0} onClick={() => move(i, -1)}><IconUp /></button>
               <button type="button" className="icon-btn sm" aria-label={`Move step ${i + 1} down`} disabled={i === steps.length - 1} onClick={() => move(i, 1)}><IconDown /></button>

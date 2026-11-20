@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { Shell } from "./components/Shell";
 import { NotesPane } from "./components/NotesPane";
@@ -10,7 +10,10 @@ import { useDrafts } from "./store/useDrafts";
 import { runEngine } from "./engine/run";
 import { EngineError, toEngineError } from "./engine/errors";
 import { emptyReport, type Field } from "./domain/report";
-import type { Draft } from "./domain/types";
+import type { Draft, Flag } from "./domain/types";
+import { inventionCheck, sourceTextFor } from "./domain/invention";
+import { FlaggedText } from "./components/FlagMark";
+import { InventionSummary } from "./components/InventionSummary";
 
 export default function App() {
   const [settings] = useState(loadSettings);
@@ -49,7 +52,35 @@ export default function App() {
     [live, settings, update],
   );
 
+  const flags = useMemo(
+    () => (active?.report ? inventionCheck(active.report, sourceTextFor(active), active.acceptedFlags) : []),
+    [active],
+  );
+
   if (!active) return null;
+
+  const removeFlag = (f: Flag) =>
+    update(active.id, (d) => {
+      const r = d.report ?? emptyReport();
+      const strip = (s: string) => s.replace(new RegExp(f.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"), "").replace(/\s{2,}/g, " ").replace(/\s+([.,])/g, "$1").trim();
+      let next = { ...r };
+      if (f.field === "environment" && f.index !== undefined) next.environment = r.environment.filter((_, i) => i !== f.index);
+      else if (f.field === "steps" && f.index !== undefined) next.steps = r.steps.map((s, i) => (i === f.index ? strip(s) : s));
+      else if (f.field === "title" || f.field === "expected" || f.field === "actual") next = { ...next, [f.field]: strip(r[f.field]) };
+      return { report: next };
+    });
+  const keepFlag = (f: Flag) =>
+    update(active.id, (d) => ({ acceptedFlags: [...new Set([...d.acceptedFlags, f.text.toLowerCase()])] }));
+  const renderPreview = (field: Field, index?: number) => {
+    const fs = flags.filter((f) => f.field === field && f.index === index);
+    if (!fs.length || !active.report) return undefined;
+    const v = active.report[field];
+    const text = Array.isArray(v) ? v[index ?? 0] : v;
+    const body = <FlaggedText text={text} flags={fs} onRemove={removeFlag} onKeep={keepFlag} />;
+    return field === "environment" ? <span>{body}</span> : <div className={"preview-line" + (field === "title" ? " title-input" : "")}>{body}</div>;
+  };
+  const simulate = () =>
+    update(active.id, (d) => (d.report ? { report: { ...d.report, environment: [...d.report.environment, "Chrome 131"] } } : {}));
 
   const onEdit = (field: Field, value: string | string[]) =>
     update(active.id, (d) => ({
@@ -75,6 +106,8 @@ export default function App() {
             onOpenEngine={() => {}}
             onRetry={() => run(active)}
             onSwitchHybrid={() => update(active.id, { privacy: "hybrid", privacyOverride: true })}
+            renderPreview={renderPreview}
+            summary={<InventionSummary count={flags.length} onSimulate={!live ? simulate : undefined} />}
             below={
               <MissingInfo
                 draft={active}

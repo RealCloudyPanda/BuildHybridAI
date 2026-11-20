@@ -93,7 +93,7 @@ function ReportCard({ draft, report, onEdit, onToggleLock, renderPreview, summar
           <p className="why-cloud" style={{ margin: "-8px 0 8px" }}>Why the cloud: {whyCloud(run.availabilityBefore)}</p>
         )}
         <EditableField field="title" label="Title" big index={0} value={report.title} locked={locked("title")} onChange={(v) => onEdit("title", v)} onToggleLock={onToggleLock} preview={renderPreview?.("title")} />
-        <StepsEditor steps={report.steps} index={1} locked={locked("steps")} onChange={(s) => onEdit("steps", s)} onToggleLock={onToggleLock} />
+        <StepsEditor steps={report.steps} index={1} locked={locked("steps")} onChange={(s) => onEdit("steps", s)} onToggleLock={onToggleLock} renderPreview={renderPreview} />
         <EditableField field="expected" label="Expected" index={2} value={report.expected} locked={locked("expected")} onChange={(v) => onEdit("expected", v)} onToggleLock={onToggleLock} preview={renderPreview?.("expected")} />
         <EditableField field="actual" label="Actual" index={3} value={report.actual} locked={locked("actual")} onChange={(v) => onEdit("actual", v)} onToggleLock={onToggleLock} preview={renderPreview?.("actual")} />
         <EnvironmentEditor env={report.environment} locked={locked("environment")} onChange={(e) => onEdit("environment", e)} onToggleLock={onToggleLock} renderPreview={renderPreview} />
