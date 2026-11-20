@@ -81,7 +81,7 @@ What the code does (see [`src/engine/hybrid.ts`](src/engine/hybrid.ts), [`src/en
 
 ## Quickstart
 
-Node 22.
+Node 24.12+ for the Firebase SDK dependencies.
 
 ```bash
 npm install
@@ -91,7 +91,7 @@ npm run dev
 
 The app opens in **Sample mode**. Click one of the three example chips, then **Write report**. The demo shop is at http://localhost:5173/demo-shop/index.html.
 
-Other commands: `npm test` (unit/component tests), `npm run e2e` (Playwright smoke test), `npm run build` (static build in `dist/`), `npm run preview` (serves the build on port 4173).
+Other commands: `npm test` (unit, component and integration tests), `npm run typecheck`, `npm run build` (static build in `dist/`), `npm run preview` (serves the build on port 4173). For the browser smoke test, run `npx playwright install chromium` once, then `npm run e2e`.
 
 ## Sample mode vs Live mode
 
@@ -109,7 +109,7 @@ Sample mode never loads the Firebase SDK (it is imported on demand only in the l
 
 1. Create a Firebase project, then add a **Web app** and copy its `firebaseConfig`.
 2. In the console, open **AI Logic**, get started, and choose the **Gemini Developer API**.
-3. **App Check**: register the web app. For localhost, open *Manage debug tokens*, add a token, and paste the same token into Settings. For a hosted URL, use a reCAPTCHA Enterprise site key instead.
+3. **App Check**: register the web app. For localhost, open *Manage debug tokens*, add a token, and paste the same token into Settings. For a hosted URL, register its domain for a reCAPTCHA Enterprise site key, register that key in Firebase App Check, and use the key in Settings. Keep debug tokens out of the repo, video and submission. [Firebase App Check setup](https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider)
 4. In the app, open **Settings** (top right), paste the config (JSON or the `const firebaseConfig = {…}` snippet) and the token or key, then **Save and reload**. Everything is stored only in this browser's localStorage.
 5. For on-device runs use desktop **Chrome 139+**, enable `chrome://flags/#prompt-api-for-gemini-nano-multimodal-input`, restart Chrome, then open the **On-device** chip in the header and press **Prepare on-device model**. The download takes several minutes.
 
@@ -146,18 +146,15 @@ docs/                      SPEC, PLAN, RESEARCH, GRILL (design interview), ADRs,
 
 ## Testing
 
-Results from the last local run:
-
-- `npm test`: **65 tests in 15 files passed** (Vitest, jsdom). Covers the parser, prompt, sensitivity scan, invention check (all fixtures give zero flags), sample engine, locked-field merge, settings parsing, App Check init order, the hybrid runner with `firebase/ai` mocked (mode mapping, shared schema, `inferenceSource` pass-through, Local-only never calling the SDK when Nano is unavailable, discarding an `in_cloud` Local-only result, error mapping), drafts storage and the main components.
-- `npm run e2e`: **1 Playwright test passed** (Chromium). E1 report, E2 questions → example answers → updated report, E3 → Local-only + banner, and an axe scan with **zero serious or critical violations** on the E1 report screen.
-- Manual check of the live path: with a deliberately fake config, the app called Firebase AI Logic and showed Firebase's "API key not valid" error in the error card, so the runtime call path is wired up. A successful live run was **not** verified (see below).
+- `npm test` covers the domain logic, IndexedDB autosave and deletion, the main components, and the live path through the installed Firebase SDK with simulated services.
+- `npm run e2e` checks all three Sample examples and runs an axe scan for serious or critical violations on the first report screen.
 
 ## Known limitations
 
-- **Live hybrid inference was verified only with mocked SDK tests.** It needs the owner's Firebase project (AI Logic + App Check) and desktop Chrome with Gemini Nano. No real on-device or cloud report has been produced during development.
+- **Live inference still needs a check with a real Firebase project.** Automated tests exercise the SDK with simulated services. A successful cloud run requires AI Logic and App Check, and a successful on-device run also requires desktop Chrome with Gemini Nano.
 - On-device runs need desktop Chrome 139+ with the Prompt API flag. Other browsers can use Hybrid (cloud) or Sample mode only.
 - Notes are capped at 4,000 characters to stay within the ~4096-token on-device limit.
-- **No offline app shell yet.** The planned service worker (`vite-plugin-pwa`) and offline chip were cut for time, so the app needs a network connection to load the first time. Once loaded, Sample-mode runs and on-device runs need no network.
+- **Loading or reloading the app requires network access.** Once loaded, Sample-mode runs and runs with an already prepared on-device model can work offline.
 - The sample engine is a simple rule set. Outside the three examples its reports are rough, which is intended: it exists so judges can click through every screen without a config.
 - In the dev server the demo shop lives at `/demo-shop/index.html` (`/demo-shop/` is caught by the app's SPA fallback).
 - Changing Settings reloads the page, because App Check debug mode is read once per page load.
@@ -166,8 +163,9 @@ Results from the last local run:
 
 - [ ] Create the Firebase project, enable AI Logic (Gemini Developer API) and App Check, add a debug token.
 - [ ] Run E1 in Hybrid and Local-only in Nano-capable Chrome and confirm the badge says **On device**.
-- [ ] Deploy to Firebase Hosting and add the URL here.
-- [ ] Record the ≤3 min video (script in [docs/SPEC.md §10](docs/SPEC.md)) and submit on Devpost before **Nov 30 2026, 5 pm ET**.
+- [ ] Run Hybrid with the on-device model unavailable and confirm a successful report with the **In cloud** badge and App Check enabled.
+- [ ] Give judges a working Live demo and testing instructions using a dedicated Firebase project. Confirm the MIT-licensed repo is public and keep judging access free through Dec 16, 2026, 5 pm ET.
+- [ ] Upload the ≤3 min demo as a public YouTube video (see the [video script](docs/SPEC.md#10-video-script-250-target-300-hard-cap)) and submit on Devpost before **Nov 30, 2026, 5 pm ET**. [Official contest rules](https://firebasehybridaihackathon.devpost.com/rules)
 
 ## How this was built
 

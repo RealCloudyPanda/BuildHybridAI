@@ -350,7 +350,7 @@ In Sample mode only, an example-E2 draft shows a link **"Fill example answers"**
 3. "It should return to the same scroll position, at the Trail Kettle."
 4. "Firefox on Windows laptop."
 
-When the draft is E2 and all four questions are answered, Update report returns **E2b**:
+When the draft is E2 and all four answers match the supplied example answers, Update report returns **E2b**:
 ```json
 {
   "title": "Scroll position is lost after returning from a product page",
@@ -443,9 +443,9 @@ Direction: **lab notebook meets ticket**. Operate-mode restraint, with the craft
 
 | Criterion | What proves it | Where |
 |---|---|---|
-| **Technological implementation**: Firebase AI Logic hybrid | `getGenerativeModel` with `InferenceMode.PREFER_ON_DEVICE` / `ONLY_ON_DEVICE`, the same JSON schema for `responseSchema` + `responseConstraint`, `initializeDeviceModel` with progress, the `inferenceSource` badge, a why-cloud reason, App Check (reCAPTCHA Enterprise or debug token), mocked adapter tests | `src/engine/hybrid.ts`, `src/engine/firebase.ts`, `src/engine/availability.ts`, `tests/hybrid.test.ts`; video 0:35–1:25 |
+| **Technological implementation**: Firebase AI Logic hybrid | `getGenerativeModel` with `InferenceMode.PREFER_ON_DEVICE` / `ONLY_ON_DEVICE`, the same JSON schema for `responseJsonSchema` + `responseConstraint`, `initializeDeviceModel` with progress, the `inferenceSource` badge, a why-cloud reason, App Check (reCAPTCHA Enterprise or debug token), SDK integration tests | `src/engine/hybrid.ts`, `src/engine/firebase.ts`, `src/engine/availability.ts`, `tests/firebaseRuntime.test.ts`; video 0:35–1:25 |
 | Hybrid used meaningfully, not as decoration | Privacy routing: the sensitivity scan forces `ONLY_ON_DEVICE`, which never falls back (ADR 0002). Hybrid uses the cloud only when Nano isn't ready. The SDK's systemInstruction gap was found and designed around (ADR 0001) | `src/domain/sensitivity.ts`, docs/adr; video 1:25–1:55 |
-| **Design**: a complete product | Drafts, autosave, edit + lock, export, settings, empty/loading/error states, keyboard shortcut, responsive, offline app shell | README screenshots; video throughout |
+| **Design**: a complete product | Drafts, autosave, edit + lock, export, settings, empty/loading/error states, keyboard shortcut, responsive layout | README screenshots; video throughout |
 | **Potential impact** | A real job (QA → dev hand-off) and a real constraint (internal data in notes). Fewer "can't reproduce" round trips | README "The problem"; video 0:00–0:20, 2:30 |
 | **Quality of idea** | "Asks instead of invents" + deterministic invention check + a reproducer test on a planted bug | `src/domain/invention.ts`; video 1:55–2:30 |
 | Requirements | firebase ≥12.5 (`^13.4.0`), runtime calls to Firebase AI Logic, App Check, MIT license, public repo, video ≤3 min, hosted URL | `package.json`, LICENSE, README |
@@ -467,7 +467,7 @@ Recording setup: Chrome with Gemini Nano **already prepared**, live config paste
 | 1:55–2:15 | New draft, paste E2 (vague). Report is mostly gaps plus four questions | "Vague notes get questions, not a confident fake report." |
 | 2:15–2:30 | Show an invention-check flag (a cloud run with a short prompt that names a version, or the Sample-mode simulation). Hover the popover, press Remove | "And if a model ever adds a detail that isn't in your notes, a deterministic check flags it." |
 | 2:30–2:45 | Split screen: a second developer gets only the copied Markdown and reproduces the bug on the first try (real recording, no staging) | "We handed the report to another developer, with no context. They reproduced it on the first try." |
-| 2:45–2:55 | Quick montage: drafts rail, copy Markdown, Settings, Sample mode badge | "Drafts stay in IndexedDB, it works offline, and judges can try every screen in Sample mode." |
+| 2:45–2:55 | Quick montage of the drafts rail, copy Markdown, Settings and Sample mode badge | "Drafts stay in this browser, and Sample mode lets you try the reporting flow without a Firebase project." |
 | 2:55–3:00 | Title card: Repro Offline · repo URL | "Repro Offline. Asks before it guesses." |
 
 The 2:30 reproducer clip has to be recorded for real. If nobody is available, cut it and say "reproduce it yourself at /demo-shop" instead. Never stage it.
@@ -480,7 +480,7 @@ The 2:30 reproducer clip has to be recorded for real. If nobody is available, cu
 
 **Tagline:** Rough QA notes in, reproducible bug report out. On your device, and it asks before it guesses.
 
-**Built with:** firebase, firebase-ai-logic, gemini-nano, chrome-prompt-api, gemini, app-check, react, typescript, vite, indexeddb, pwa
+**Built with:** firebase, firebase-ai-logic, gemini-nano, chrome-prompt-api, gemini, app-check, react, typescript, vite, indexeddb
 
 **Description**
 
@@ -488,7 +488,7 @@ The 2:30 reproducer clip has to be recorded for real. If nobody is available, cu
 
 *What it does*: Paste rough notes and get an editable bug report: title, steps, expected, actual, environment. Anything missing becomes a question instead of a guess. Answer it and the report updates. A deterministic invention check flags any version, browser, number or URL the report contains that wasn't in your notes. Notes with emails, internal hosts or tokens switch to Local-only automatically. Drafts stay in your browser.
 
-*How we built it*: Firebase AI Logic's hybrid web SDK (`firebase` 13.4) with `InferenceMode.PREFER_ON_DEVICE` for normal notes and `ONLY_ON_DEVICE` for sensitive ones. Gemini Nano runs in Chrome via the Prompt API, with `gemini-3.5-flash-lite` as the cloud fallback. One JSON schema drives both `responseSchema` (cloud) and `responseConstraint` (device). The UI badge reads `response.inferenceSource`, so it always says where a run really happened. App Check protects the cloud path. React + TypeScript + Vite, IndexedDB drafts, and a service worker for offline use.
+*How we built it*: Firebase AI Logic's hybrid web SDK (`firebase` 13.4) with `InferenceMode.PREFER_ON_DEVICE` for normal notes and `ONLY_ON_DEVICE` for sensitive ones. Gemini Nano runs in Chrome via the Prompt API, with `gemini-3.5-flash-lite` as the cloud fallback. One JSON schema drives both `responseJsonSchema` (cloud) and `responseConstraint` (device). The UI badge reads `response.inferenceSource`, so it always says where a run really happened. App Check protects the cloud path. The app uses React, TypeScript and Vite, with IndexedDB for draft storage.
 
 *Challenges*: We found that the SDK's on-device path drops `systemInstruction`, so all instructions go into one self-contained prompt that both models receive. `PREFER_ON_DEVICE` won't wait for a model download, so we added an explicit Prepare step and a "why did this run in the cloud" explanation. Small on-device models like to invent details, which is what the invention check is for.
 
@@ -506,9 +506,11 @@ The 2:30 reproducer clip has to be recorded for real. If nobody is available, cu
 - [ ] `package.json` has `firebase` `^13.4.0` (≥12.5.0) and code imports `firebase/ai` and calls `generateContent` at runtime
 - [ ] App Check initialised before any AI call (`src/engine/firebase.ts`). README shows debug-token setup
 - [ ] Firebase project: AI Logic enabled (Gemini Developer API), App Check registered, debug token added *(owner)*
-- [ ] Hosted URL (Firebase Hosting `firebase deploy` or any static host; `npm run build` → `dist/`) *(owner)*
-- [ ] YouTube video ≤ 3:00, public or unlisted, follows §10 *(owner)*
-- [ ] Devpost: title, tagline, description (§11), built-with tags, repo URL, video URL, hosted URL, "Best Web/Chrome App" category
+- [ ] Working Live demo and testing instructions, with free judging access through Dec 16, 2026, 5 pm ET. A hosted URL is encouraged. *(owner)*
+- [ ] Public YouTube video ≤ 3:00, follows §10 *(owner)*
+- [ ] Devpost entry with description (§11), summary of work built during the contest period, disclosure of any other pre-existing work incorporated into the project, built-with tags, repo URL, video URL, demo access and Web/Chrome platform
 - [ ] README: screenshots, Sample vs Live, judging table, AI disclosure, Known limitations
 - [ ] No secrets in git: `git grep -nE "AIza|FIREBASE_APPCHECK_DEBUG_TOKEN\s*=\s*['\"]"` returns nothing except docs/code that read the value at runtime
 - [ ] Submit before **Nov 30 2026, 5:00 pm ET**
+
+[Official contest rules](https://firebasehybridaihackathon.devpost.com/rules)
