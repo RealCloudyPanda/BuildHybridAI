@@ -3,6 +3,7 @@ import { Header } from "./components/Header";
 import { Shell } from "./components/Shell";
 import { NotesPane } from "./components/NotesPane";
 import { ReportPane, type Running } from "./components/ReportPane";
+import { DraftsRail } from "./components/DraftsRail";
 import { MissingInfo } from "./components/MissingInfo";
 import { E2_EXAMPLE_ANSWERS } from "./fixtures/examples";
 import { loadSettings } from "./store/settings";
@@ -18,7 +19,8 @@ import { InventionSummary } from "./components/InventionSummary";
 export default function App() {
   const [settings] = useState(loadSettings);
   const live = !!settings.firebaseConfig;
-  const { active, update } = useDrafts();
+  const { drafts, active, activeId, setActiveId, update, create, remove } = useDrafts();
+  const [railOpen, setRailOpen] = useState(false);
   const [tab, setTab] = useState<"notes" | "report">("notes");
   const [running, setRunning] = useState<Record<string, Running>>({});
   const [errors, setErrors] = useState<Record<string, EngineError | null>>({});
@@ -92,9 +94,19 @@ export default function App() {
 
   return (
     <>
-      <Header live={live} deviceChip={null} onOpenSettings={() => {}} onToggleRail={() => {}} />
+      <Header live={live} deviceChip={null} onOpenSettings={() => {}} onToggleRail={() => setRailOpen((o) => !o)} />
       <Shell
-        rail={<aside className="rail" aria-label="Drafts" />}
+        rail={
+          <DraftsRail
+            drafts={drafts}
+            activeId={activeId}
+            open={railOpen}
+            onClose={() => setRailOpen(false)}
+            onSelect={(id) => { setActiveId(id); setRailOpen(false); setTab("notes"); }}
+            onNew={() => { create(); setRailOpen(false); setTab("notes"); }}
+            onDelete={(id) => void remove(id)}
+          />
+        }
         notes={<NotesPane draft={active} running={!!running[active.id]} onChange={(p) => update(active.id, p)} onRun={() => run(active)} />}
         report={
           <ReportPane
