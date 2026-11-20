@@ -1,6 +1,6 @@
 import type { Field, MissingField, Report } from "../domain/report";
 import type { Answer, ExampleId } from "../domain/types";
-import { EXAMPLES, FIXTURES, FIXTURE_E2B } from "../fixtures/examples";
+import { E2_EXAMPLE_ANSWERS, EXAMPLES, FIXTURES, FIXTURE_E2B } from "../fixtures/examples";
 
 export interface SampleInput {
   notes: string;
@@ -87,7 +87,9 @@ export function runSample(input: SampleInput): Report {
   if (exampleId) {
     const ex = EXAMPLES.find((e) => e.id === exampleId);
     if (ex && ex.notes.trim() === notes.trim()) {
-      if (exampleId === "vague" && answered.length >= 4) return structuredClone(FIXTURE_E2B);
+      if (exampleId === "vague" && FIXTURES.vague.missing_info.every((q, i) =>
+        answered.some((a) => a.question === q.question && a.field === q.field && a.answer.trim() === E2_EXAMPLE_ANSWERS[i]),
+      )) return structuredClone(FIXTURE_E2B);
       if (answered.length === 0) return structuredClone(FIXTURES[exampleId]);
     }
   }

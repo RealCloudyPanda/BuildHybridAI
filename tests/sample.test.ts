@@ -8,10 +8,19 @@ describe("runSample", () => {
   it.each(EXAMPLES.map((e) => [e.id, e] as const))("returns the %s fixture", (_id, e) => {
     expect(runSample({ ...base, notes: e.notes, exampleId: e.id })).toEqual(FIXTURES[e.id]);
   });
-  it("returns E2b when all four E2 questions are answered", () => {
+  it("returns E2b when all four E2 questions have the supplied example answers", () => {
     const qs = FIXTURES.vague.missing_info;
     const answers = qs.map((q, i) => ({ question: q.question, field: q.field, answer: E2_EXAMPLE_ANSWERS[i], answeredAt: 1 }));
     expect(runSample({ ...base, notes: EXAMPLES[1].notes, exampleId: "vague", answers })).toEqual(FIXTURE_E2B);
+  });
+  it("uses the tester's own clarifications even when all four E2 questions are answered", () => {
+    const notes = EXAMPLES[1].notes;
+    const values = ["Clicked a sale item, then pressed Back.", "The list reset to All.", "Expected Sale to stay selected.", "Safari on iPhone"];
+    const answers = FIXTURES.vague.missing_info.map((q, i) => ({ ...q, answer: values[i], answeredAt: 1 }));
+    const report = runSample({ ...base, notes, exampleId: "vague", answers });
+    expect(report).toMatchObject({
+      actual: "The list reset to All.", expected: "Sale to stay selected.", environment: ["Safari iPhone"],
+    });
   });
   it("uses the rule engine for other notes", () => {
     const r = runSample({ ...base, notes: "opened settings, changed language to French, saved, page still in English. expected French. firefox" });

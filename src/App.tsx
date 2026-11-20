@@ -9,7 +9,7 @@ import { SettingsDrawer } from "./components/SettingsDrawer";
 import { ExportBar } from "./components/ExportBar";
 import { Toasts } from "./components/Toast";
 import { MissingInfo } from "./components/MissingInfo";
-import { E2_EXAMPLE_ANSWERS } from "./fixtures/examples";
+import { E2_EXAMPLE_ANSWERS, FIXTURES } from "./fixtures/examples";
 import { loadSettings } from "./store/settings";
 import { useDrafts } from "./store/useDrafts";
 import { runEngine } from "./engine/run";
@@ -75,6 +75,11 @@ export default function App() {
   );
 
   if (!active) return null;
+
+  const questions = active.report?.missing_info ?? [];
+  const exampleQuestions = FIXTURES.vague.missing_info;
+  const showExampleFill = !live && active.exampleId === "vague" && questions.length === exampleQuestions.length
+    && questions.every((q, i) => q.question === exampleQuestions[i].question && q.field === exampleQuestions[i].field);
 
   const removeFlag = (f: Flag) =>
     update(active.id, (d) => {
@@ -142,7 +147,7 @@ export default function App() {
               <MissingInfo
                 draft={active}
                 running={!!running[active.id]}
-                showExampleFill={!live && active.exampleId === "vague"}
+                showExampleFill={showExampleFill}
                 exampleAnswers={E2_EXAMPLE_ANSWERS}
                 onSubmit={(answers) => run(active, answers)}
               />
