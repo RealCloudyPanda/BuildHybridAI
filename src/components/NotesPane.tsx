@@ -28,12 +28,12 @@ export function NotesPane({ draft, running, onChange, onRun }: Props) {
 
   const matches = useMemo(() => scanSensitive(scanText), [scanText]);
   const visibleMatches = scanText === draft.notes ? matches : [];
-  const summary = summarise(matches);
+  const summary = summarise(visibleMatches);
 
   // F4: first sensitive match in a draft switches it to Local-only, unless the tester chose Hybrid.
   useEffect(() => {
-    if (matches.length && draft.privacy === "hybrid" && !draft.privacyOverride) onChange({ privacy: "local-only" });
-  }, [matches.length]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (visibleMatches.length && draft.privacy === "hybrid" && !draft.privacyOverride) onChange({ privacy: "local-only" });
+  }, [visibleMatches.length, draft.id, draft.privacy, draft.privacyOverride, onChange]);
 
   const len = draft.notes.length;
   const over = len > NOTES_CHAR_LIMIT;
@@ -48,7 +48,10 @@ export function NotesPane({ draft, running, onChange, onRun }: Props) {
     setScanText(e.notes);
     onChange({ notes: e.notes, exampleId: e.id, privacy: sensitive ? "local-only" : draft.privacy, privacyOverride: false });
   };
-  const setPrivacy = (p: Privacy) => onChange({ privacy: p, privacyOverride: p === "hybrid" && matches.length > 0 ? true : draft.privacyOverride });
+  const setPrivacy = (p: Privacy) => onChange({
+    privacy: p,
+    privacyOverride: p === "hybrid" && (draft.privacyOverride || draft.privacy === "local-only" || scanSensitive(draft.notes).length > 0),
+  });
 
   return (
     <>

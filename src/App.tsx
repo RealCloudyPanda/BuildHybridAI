@@ -15,6 +15,8 @@ import { useDrafts } from "./store/useDrafts";
 import { runEngine } from "./engine/run";
 import { EngineError, toEngineError } from "./engine/errors";
 import { emptyReport, type Field } from "./domain/report";
+import { buildPrompt } from "./domain/prompt";
+import { scanSensitive } from "./domain/sensitivity";
 import type { Draft, Flag } from "./domain/types";
 import { inventionCheck, sourceTextFor } from "./domain/invention";
 import { FlaggedText } from "./components/FlagMark";
@@ -40,19 +42,20 @@ export default function App() {
   const run = useCallback(
     async (d: Draft, answers = d.answers) => {
       const id = d.id;
-      setRunning((r) => ({ ...r, [id]: { startedAt: Date.now(), privacy: d.privacy, live } }));
+      const input = { notes: d.notes, answers, exampleId: d.exampleId, locked: d.locked, report: d.report };
+      // Check what will actually be sent, regardless of the debounced notes preview.
+      const privacy = d.privacy === "hybrid" && !d.privacyOverride && scanSensitive(buildPrompt(input)).length
+        ? "local-only" : d.privacy;
+      if (privacy !== d.privacy) update(id, { privacy });
+      setRunning((r) => ({ ...r, [id]: { startedAt: Date.now(), privacy, live } }));
       setErrors((e) => ({ ...e, [id]: null }));
       setTab("report");
       try {
-        const res = await runEngine(
-          { notes: d.notes, answers, exampleId: d.exampleId, locked: d.locked, report: d.report },
-          d.privacy,
-          settings,
-        );
+        const res = await runEngine(input, privacy, settings);
         update(id, {
           answers,
           report: res.report,
-          lastRun: { source: res.source, ms: res.ms, availabilityBefore: res.availabilityBefore, at: Date.now(), privacy: d.privacy },
+          lastRun: { source: res.source, ms: res.ms, availabilityBefore: res.availabilityBefore, at: Date.now(), privacy },
         });
       } catch (e) {
         setErrors((x) => ({ ...x, [id]: toEngineError(e) }));
