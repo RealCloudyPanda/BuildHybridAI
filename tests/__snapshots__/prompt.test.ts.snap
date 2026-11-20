@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildPrompt > matches the snapshot for E1 with one answer and one locked field 1`] = `
+"You turn a software tester's rough notes into a bug report that another developer can follow to reproduce the bug.
+
+RULES
+1. Use ONLY facts stated in NOTES, CLARIFICATIONS and CONFIRMED FIELDS.
+2. Never add a browser, version, operating system, device, URL, number, error message, step or cause that is not stated there.
+3. If something a developer needs is not stated, leave that field empty ("" or []) and ask about it in missing_info.
+4. title: one line, under 80 characters, describing the wrong behaviour.
+5. steps: short imperative sentences, one action each, in the order they happened.
+6. expected: what the tester says should happen. actual: what happened instead.
+7. environment: only browser, operating system, device, account type or build that are stated.
+8. missing_info: at most 4 questions, most important first. Do not ask about anything already answered.
+9. Copy every CONFIRMED FIELD exactly as given.
+10. Reply with JSON only.
+
+NOTES
+"""
+trailhead demo shop. picked Tents in the category chips, list showed 4 tents. clicked the Ridgeline 2P tent, detail page opened fine. hit the browser back button -> list shows all products again and the Tents chip isn't selected anymore. expected to still only see tents. happens every time. chrome on my mac
+"""
+
+CLARIFICATIONS
+Q: Which Chrome version were you using? (You can find it at chrome://version.)
+A: Chrome 142
+
+CONFIRMED FIELDS
+expected: The list still shows only tents, with the Tents chip selected."
+`;
