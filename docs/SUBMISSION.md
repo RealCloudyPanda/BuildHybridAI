@@ -13,3 +13,5 @@ Draft for the owner. Nothing here has been submitted. Rules checked on firebaseh
 | Testing access | A link or test build, free and unrestricted until judging ends (Dec 16). A hosted project is "highly encouraged". No production API keys or project secrets in the submission. | Not hosted. Sample mode works with no config. |
 | Video | **No longer than 3 minutes** (only the first 3 are judged), public on YouTube, English or English subtitles, showing the app working on its platform. | Not recorded. Script below runs 2:50. |
 | Judging (Stage Two, equally weighted, 1–5 each) | Technological Implementation (how well it uses **hybrid inference**), Design, Potential Impact, Quality of the Idea. Ties go to the first criterion. | |
+
+**The blocker.** The entry's core claim is hybrid inference, and that has only been tested against simulated services. Before recording: create a Firebase project, enable AI Logic (Gemini Developer API), register App Check, paste the config into Settings, prepare Gemini Nano in Chrome, and get one real `On device` run and one real `In cloud` run. If either fails, fix it first; the video can't fake it.
