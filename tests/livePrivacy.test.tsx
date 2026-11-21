@@ -67,3 +67,16 @@ it("retries an update with the clarification that was submitted before the failu
   expect(vi.mocked(runEngine).mock.calls[2][0].answers).toEqual(vi.mocked(runEngine).mock.calls[1][0].answers);
   expect(await screen.findByText(/On device ·/)).toBeInTheDocument();
 });
+
+it("discards a pending result after source editing", async () => {
+  let resolve!: (value: Awaited<ReturnType<typeof runEngine>>) => void;
+  vi.mocked(runEngine).mockReturnValueOnce(new Promise((done) => { resolve = done; }));
+  render(<App />);
+  const notes = await screen.findByLabelText("Notes", { selector: "textarea" });
+  fireEvent.change(notes, { target: { value: "Click save. Error appears." } });
+  fireEvent.click(screen.getByRole("button", { name: /Write report/ }));
+  fireEvent.change(notes, { target: { value: "New source notes" } });
+  resolve({ report: FIXTURES.vague, source: "on_device", ms: 1, availabilityBefore: "available" });
+  expect(await screen.findByText(/Inputs changed during the run/)).toBeInTheDocument();
+  expect(screen.queryByRole("textbox", { name: "Title" })).not.toBeInTheDocument();
+});
