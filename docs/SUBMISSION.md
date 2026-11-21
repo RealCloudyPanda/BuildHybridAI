@@ -88,3 +88,7 @@ assistants under my direction and checked by running them. [[OWNER: name the ass
 **Try it out:** [[hosted URL once deployed]] · `https://github.com/RealCloudyPanda/BuildHybridAI`
 
 **Platform:** Web / Chrome
+
+**Testing instructions** (paste into the form):
+
+> Open the hosted URL in desktop Chrome. With no setup the app runs in **Sample mode** (labelled `Sample · no AI`): click an example chip, then **Write report**. For live hybrid inference the hosted build uses my Firebase project with App Check; on-device runs need Chrome 139+ with `chrome://flags/#prompt-api-for-gemini-nano-multimodal-input` enabled, then **On-device → Prepare on-device model**. The demo shop with a planted bug is at `/demo-shop/index.html`.
