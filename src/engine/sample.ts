@@ -88,8 +88,22 @@ export function runSample(input: SampleInput): Report {
   const answered = answers.filter((a) => a.answer.trim());
   const source = [notes, ...answered.map((a) => a.answer)].join("\n");
   const report = ruleEngine(source);
-  // Questions already answered are not asked again.
-  const askedFields = new Set(answered.map((a) => a.field));
-  report.missing_info = report.missing_info.filter((m) => !askedFields.has(m.field) || m.field === "other");
+  // Clarifications target their named fields; an answer is not proof of completeness.
+  for (const answer of answered) {
+    const value = sentence(answer.answer);
+    if (answer.field === "expected" || answer.field === "actual") report[answer.field] = value;
+    if (answer.field === "environment") report.environment = [answer.answer.trim()];
+    if (answer.field === "steps") report.steps = splitClauses(answer.answer).map(sentence);
+  }
+  const populated = (field: MissingField) => field === "frequency" ? FREQUENCY.test(source)
+    : field === "other" ? false : Array.isArray(report[field]) ? report[field].length > 0 : !!report[field];
+  report.missing_info = report.missing_info.filter((m) => !answered.some((a) => a.field === m.field) || !populated(m.field));
+  const expected = clausesFor(notes, answered, "expected");
+  if (expected.length > 1) report.missing_info.unshift({ field: "other", question: "Several expected results were supplied. Confirm which applies: " + expected.join(" / ") });
+  report.missing_info = report.missing_info.slice(0, 4);
   return report;
+}
+
+function clausesFor(notes: string, answers: Answer[], field: "expected"): string[] {
+  return [...new Set([...splitClauses(notes).filter((c) => EXPECTED.test(c)), ...answers.filter((a) => a.field === field).map((a) => a.answer)].map((s) => s.trim().toLowerCase()))];
 }

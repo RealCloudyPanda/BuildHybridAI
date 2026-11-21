@@ -14,7 +14,7 @@ describe("runSample", () => {
     const answers = FIXTURES.vague.missing_info.map((q, i) => ({ ...q, answer: values[i], answeredAt: 1 }));
     const report = runSample({ ...base, notes, exampleId: "vague", answers });
     expect(report).toMatchObject({
-      actual: "The list reset to All.", expected: "Sale to stay selected.", environment: ["Safari iPhone"],
+      actual: "The list reset to All.", expected: "Expected Sale to stay selected.", environment: ["Safari on iPhone"],
     });
   });
   it("uses the rule engine for other notes", () => {
