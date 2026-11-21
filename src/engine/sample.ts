@@ -38,6 +38,9 @@ const sentence = (s: string) => {
   const t = s.trim().replace(/[.\s]+$/, "");
   return t ? t[0].toUpperCase() + t.slice(1) + "." : "";
 };
+// Unknowns are gaps, including when the tester used a field label.
+const unknown = (s: string) => /^(?:unknown|not (?:yet )?known|not sure|unsure|no idea|n\/a|maybe|idk|don[’']?t know|not (?:tested|recorded|provided|specified)|tbd|\?+)[.!?]*$/i.test(s.trim());
+const fieldValue = (s: string) => s.replace(/^(?:actual(?: result)?|expected(?: result)?|environment|steps?)\s*:\s*/i, "");
 const word = (re: RegExp, s: string) => re.test(s);
 
 function environmentOf(source: string): { env: string[]; browser?: string } {
@@ -56,17 +59,17 @@ function environmentOf(source: string): { env: string[]; browser?: string } {
 
 /** Deterministic, rule-based report writer. No AI. */
 export function ruleEngine(source: string): Report {
-  const clauses = splitClauses(source);
-  const actualClause = clauses.find((c) => (/^actual\s*:/i.test(c) || ACTUAL.test(c)) && !EXPECTED.test(c));
+  const clauses = splitClauses(source).filter((c) => !unknown(fieldValue(c)));
+  const actualClause = clauses.find((c) => (/^actual(?: result)?\s*:/i.test(c) || ACTUAL.test(c)) && !EXPECTED.test(c));
   const expectedClause = clauses.find((c) => EXPECTED.test(c));
   const steps = clauses
     .filter((c) => c !== actualClause && c !== expectedClause && (ACTION.test(c) || /^steps?\s*:/i.test(c)))
     .map((c) => sentence(c.replace(/^steps?\s*:\s*/i, "")))
     .slice(0, 10);
   const expected = expectedClause
-    ? sentence(expectedClause.replace(/^.*?\b(expected|expect)\b(\s+to)?\s*:?\s*/i, "").replace(/^it\s+/i, "It "))
+    ? sentence(expectedClause.replace(/^.*?\b(expected|expect)\b(?:\s+result)?(\s+to)?\s*:?\s*/i, "").replace(/^it\s+/i, "It "))
     : "";
-  const actual = actualClause ? sentence(actualClause.replace(/^actual\s*:\s*/i, "")) : "";
+  const actual = actualClause ? sentence(actualClause.replace(/^actual(?: result)?\s*:\s*/i, "")) : "";
   const { env, browser } = environmentOf(source);
   const titleBase = (actualClause ?? clauses[0] ?? "Bug report").replace(/[.\s]+$/, "");
   const title = (titleBase[0]?.toUpperCase() ?? "") + titleBase.slice(1, 80);
@@ -85,15 +88,15 @@ export function ruleEngine(source: string): Report {
 
 export function runSample(input: SampleInput): Report {
   const { notes, answers } = input;
-  const answered = answers.filter((a) => a.answer.trim() && !/^(?:unknown|not sure|unsure|no idea|n\/a|maybe|idk|don.t know)[.!?]*$/i.test(a.answer.trim()));
+  const answered = answers.filter((a) => a.answer.trim() && !unknown(fieldValue(a.answer)));
   const source = [notes, ...answered.map((a) => a.answer)].join("\n");
   const report = ruleEngine(source);
   // Clarifications target their named fields; an answer is not proof of completeness.
   for (const answer of answered) {
-    const value = sentence(answer.answer);
+    const value = sentence(fieldValue(answer.answer));
     if (answer.field === "expected" || answer.field === "actual") report[answer.field] = value;
-    if (answer.field === "environment") report.environment = [answer.answer.trim()];
-    if (answer.field === "steps") report.steps = splitClauses(answer.answer).map(sentence);
+    if (answer.field === "environment") report.environment = [fieldValue(answer.answer).trim()];
+    if (answer.field === "steps") report.steps = splitClauses(fieldValue(answer.answer)).map(sentence);
   }
   const populated = (field: MissingField) => field === "frequency" ? FREQUENCY.test(source)
     : field === "other" ? false : Array.isArray(report[field]) ? report[field].length > 0 : !!report[field];
@@ -105,5 +108,5 @@ export function runSample(input: SampleInput): Report {
 }
 
 function clausesFor(notes: string, answers: Answer[], field: "expected"): string[] {
-  return [...new Set([...splitClauses(notes).filter((c) => EXPECTED.test(c)), ...answers.filter((a) => a.field === field).map((a) => a.answer)].map((s) => s.trim().toLowerCase().replace(/^(?:expected|expect)(?:\s+to)?\s*:?\s*/, "").replace(/[.!?]+$/, "")))];
+  return [...new Set([...splitClauses(notes).filter((c) => EXPECTED.test(c) && !unknown(fieldValue(c))), ...answers.filter((a) => a.field === field).map((a) => a.answer)].map((s) => s.trim().toLowerCase().replace(/^(?:expected|expect)(?:\s+to)?\s*:?\s*/, "").replace(/[.!?]+$/, "")))];
 }

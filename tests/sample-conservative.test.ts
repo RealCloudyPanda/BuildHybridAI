@@ -18,3 +18,20 @@ it('reports conflicting expected observations without silently choosing truth', 
   const same = runSample({ ...base, notes: 'Expected: blue.', answers: [answer] });
   expect(same.missing_info.some((q) => /Several expected/.test(q.question))).toBe(false);
 });
+
+it.each(['unknown', 'not tested', 'TBD', "don't know", '???'])('labelled %s stays missing', (value) => {
+  const r = ruleEngine(`Click save\nActual: ${value}\nExpected result: ${value}`);
+  expect(r.actual).toBe('');
+  expect(r.expected).toBe('');
+  expect(r.missing_info.map((q) => q.field)).toEqual(expect.arrayContaining(['actual', 'expected']));
+});
+it('labelled clarification unknowns do not overwrite a gap or create conflict', () => {
+  const r = runSample({ ...base, notes: 'Click save\nExpected: unknown', answers: [{ field: 'expected', question: 'Expected?', answer: 'Expected: not recorded', answeredAt: 1 }] });
+  expect(r.expected).toBe('');
+  expect(r.missing_info.some((q) => /Several expected/.test(q.question))).toBe(false);
+});
+it('uses explicit result labels without putting the label in the result', () => {
+  const r = ruleEngine('Open settings\nActual result: spinner remains\nExpected result: settings open');
+  expect(r.actual).toBe('Spinner remains.');
+  expect(r.expected).toBe('Settings open.');
+});

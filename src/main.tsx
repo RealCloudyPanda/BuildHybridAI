@@ -16,5 +16,5 @@ createRoot(document.getElementById("root")!).render(
 );
 
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
-  window.addEventListener("load", () => { void navigator.serviceWorker.register("/sw.js").catch(() => { /* Sample remains usable online. */ }); });
+  window.addEventListener("load", () => { void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => { /* Sample remains usable online. */ }); });
 }

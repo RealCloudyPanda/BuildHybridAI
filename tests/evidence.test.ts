@@ -12,3 +12,8 @@ it('does not turn punctuation-only text into support', () => {
   const d = { ...newDraft(), notes: 'Anything', report: { ...emptyReport(), actual: '...' } };
   expect(evidenceFor(d)[0].status).toBe('needs review');
 });
+
+it('does not cite a different word merely because it contains the generated text', () => {
+  const d = { ...newDraft(), notes: 'The document is unsaved and the button is inactive.', report: { ...emptyReport(), actual: 'saved', expected: 'active' } };
+  expect(evidenceFor(d).every((e) => e.status === 'needs review')).toBe(true);
+});

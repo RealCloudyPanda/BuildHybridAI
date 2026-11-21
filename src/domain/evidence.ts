@@ -10,7 +10,7 @@ export function evidenceFor(draft: Draft): Evidence[] {
     const raw = draft.report![field];
     return (Array.isArray(raw) ? raw : [raw]).filter(Boolean).map((text) => {
       const normalized = normalize(text);
-      const excerpt = normalized ? sources.find((s) => normalize(s).includes(normalized)) : undefined;
+      const excerpt = normalized ? sources.find((s) => (" " + normalize(s) + " ").includes(" " + normalized + " ")) : undefined;
       return { field, text, status: draft.locked.includes(field) ? 'tester confirmed' : excerpt ? 'source match' : 'needs review', excerpt } as Evidence;
     });
   });

@@ -147,16 +147,16 @@ docs/                      SPEC, PLAN, RESEARCH, GRILL (design interview), ADRs,
 
 ## Testing
 
-- `npm test`: 84 passing tests across 21 files, covering the general pipeline, literal evidence, routing, stale async results, IndexedDB storage and the SDK path with simulated services.
-- `npm run e2e`: two browser tests pass (shop bugs plus Sample examples and axe); the production-only test is skipped here. The production config passes its separate offline reload, saved-draft, cache ownership and Markdown-download test.
+- `npm test`: 92 passing tests across 21 files, covering the general pipeline, literal evidence, routing, stale async results, IndexedDB storage and the SDK path with simulated services.
+- `npm run e2e`: two browser tests pass (shop bugs plus Sample examples and axe); the production-only test is skipped here. The production config passes its separate offline reload, saved-draft, cache ownership and Markdown-download test at both `/` and `/repro/` (use `REPRO_BASE_PATH=/repro/ npx playwright test --config playwright.production.config.ts` after the subpath build).
 
 ## Known limitations
 
 - **Live inference still needs a check with a real Firebase project.** Automated tests exercise the SDK with simulated services. A successful cloud run requires AI Logic and App Check, and a successful on-device run also requires desktop Chrome with Gemini Nano.
 - On-device runs need desktop Chrome 139+ with the Prompt API flag. Other browsers can use Hybrid (cloud) or Sample mode only.
 - Notes are capped at 4,000 characters to stay within the ~4096-token on-device limit.
-- **Production offline shell:** after the first successful online load and worker installation, the root-hosted build reloads offline, restores IndexedDB drafts and downloads Markdown. The development server does not install the worker. Fresh installs require network; live model downloads and cloud inference require their own connectivity. Subpath hosting is not supported.
-- The sample engine uses conservative deterministic rules for every input. It can miss meaning, leaves unknowns open and labels literal source evidence separately from tester confirmation. It makes no model-quality claim.
+- **Production offline shell:** after the first successful online load and worker installation, the root-hosted or subpath build reloads offline, restores IndexedDB drafts and downloads Markdown. The development server does not install the worker. Fresh installs require network; live model downloads and cloud inference require their own connectivity. For a subpath, build with `npm run build -- --base /repro/` and serve the output at `/repro/`; links, worker registration and caches follow that path. Cache cleanup preserves other app scopes.
+- The sample engine uses conservative deterministic rules for every input. It can miss meaning, leaves unknowns open and keeps labelled unknown results open and labels whole-word literal source evidence separately from tester confirmation. It makes no model-quality claim.
 - In the dev server the demo shop lives at `/demo-shop/index.html` (`/demo-shop/` is caught by the app's SPA fallback).
 - Changing Settings reloads the page, because App Check debug mode is read once per page load.
 

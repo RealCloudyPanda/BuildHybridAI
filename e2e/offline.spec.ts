@@ -3,15 +3,18 @@ import { readFile } from 'node:fs/promises';
 
 test('production shell reloads offline with saved report and downloadable handoff', async ({ page, context }) => {
   test.skip(!test.info().config.configFile?.includes('production'), 'Production build only');
-  await page.goto('/');
+  await page.goto('./');
   await page.evaluate(async () => {
     await caches.open('unrelated-cache').then((cache) => cache.put('/index.html', new Response('wrong application')));
     await caches.open('repro-shell-obsolete');
+    await caches.open('repro-shell-%2Fother-app%2F-sentinel');
     await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>((resolve) => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }));
   });
-  expect(await page.evaluate(() => caches.keys())).not.toContain('repro-shell-obsolete');
+  if (new URL(page.url()).pathname === '/') expect(await page.evaluate(() => caches.keys())).not.toContain('repro-shell-obsolete');
   expect(await page.evaluate(() => caches.keys())).toContain('unrelated-cache');
+  expect(await page.evaluate(() => caches.keys())).toContain('repro-shell-%2Fother-app%2F-sentinel');
+  await expect(page.locator('.hdr-link')).toHaveAttribute('href', new URL('./demo-shop/index.html', page.url()).pathname);
   await page.getByRole('button', { name: 'Filter resets after Back' }).click();
   await page.getByRole('button', { name: /Write report/ }).click();
   const title = page.getByRole('textbox', { name: 'Title' });
@@ -32,6 +35,6 @@ test('production shell reloads offline with saved report and downloadable handof
   const markdown = await readFile(file!, 'utf8');
   expect(markdown).toContain('Reviewed filter reset');
   expect(markdown).toContain('Sample, no AI');
-  await page.goto('/demo-shop/index.html');
+  await page.goto('./demo-shop/index.html');
   await expect(page).toHaveTitle(/Trailhead Supply/);
 });
