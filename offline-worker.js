@@ -1,6 +1,7 @@
 /* Production shell cache only. No notes, settings, prompts, provider or API responses. */
-let manifest;
-const readManifest = async () => manifest ||= await (await fetch('/offline-manifest.json', { credentials: 'omit', cache: 'no-store' })).json();
+// The build embeds the manifest, so restarted workers never need a network lookup.
+const manifest = __SHELL_MANIFEST__;
+const readManifest = async () => manifest;
 self.addEventListener('install', (event) => event.waitUntil((async () => {
   const m = await readManifest();
   const cache = await caches.open(m.version);
@@ -8,10 +9,11 @@ self.addEventListener('install', (event) => event.waitUntil((async () => {
   await self.skipWaiting();
 })()));
 self.addEventListener('activate', (event) => event.waitUntil((async () => {
+  const m = await readManifest();
   const names = await caches.keys();
   // Keep only this worker's newest cache, determined by successful installation.
   const own = names.filter((n) => n.startsWith('repro-shell-'));
-  for (const n of own.slice(0, -1)) await caches.delete(n);
+  for (const n of own) if (n !== m.version) await caches.delete(n);
   await self.clients.claim();
 })()));
 self.addEventListener('fetch', (event) => {
@@ -20,7 +22,7 @@ self.addEventListener('fetch', (event) => {
   const path = url.pathname === '/' ? '/index.html' : url.pathname;
   event.respondWith((async () => {
     // Exact cache membership is the allowlist, never runtime caching.
-    const cached = await caches.match(path);
+    const cached = await (await caches.open(manifest.version)).match(path);
     return cached || fetch(event.request);
   })());
 });
