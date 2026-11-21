@@ -88,8 +88,11 @@ export default function App() {
 
   const questions = active.report?.missing_info ?? [];
   const exampleQuestions = FIXTURES.vague.missing_info;
-  const showExampleFill = !live && active.exampleId === "vague" && questions.length === exampleQuestions.length
-    && questions.every((q, i) => q.question === exampleQuestions[i].question && q.field === exampleQuestions[i].field);
+  const showExampleFill = !live && active.exampleId === "vague" && questions.length > 0;
+  const sampleAnswers = questions.map((q) => {
+    const index = exampleQuestions.findIndex((x) => x.field === q.field);
+    return index >= 0 ? E2_EXAMPLE_ANSWERS[index] : "Not sure";
+  });
 
   const removeFlag = (f: Flag) =>
     update(active.id, (d) => {
@@ -159,7 +162,7 @@ export default function App() {
                 draft={active}
                 running={!!running[active.id]}
                 showExampleFill={showExampleFill}
-                exampleAnswers={E2_EXAMPLE_ANSWERS}
+                exampleAnswers={sampleAnswers}
                 onSubmit={(answers) => run(active, answers)}
               /></>
             }
