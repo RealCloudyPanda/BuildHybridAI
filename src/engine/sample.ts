@@ -1,6 +1,5 @@
 import type { Field, MissingField, Report } from "../domain/report";
 import type { Answer, ExampleId } from "../domain/types";
-import { E2_EXAMPLE_ANSWERS, EXAMPLES, FIXTURES, FIXTURE_E2B } from "../fixtures/examples";
 
 export interface SampleInput {
   notes: string;
@@ -82,17 +81,8 @@ export function ruleEngine(source: string): Report {
 }
 
 export function runSample(input: SampleInput): Report {
-  const { notes, answers, exampleId } = input;
+  const { notes, answers } = input;
   const answered = answers.filter((a) => a.answer.trim());
-  if (exampleId) {
-    const ex = EXAMPLES.find((e) => e.id === exampleId);
-    if (ex && ex.notes.trim() === notes.trim()) {
-      if (exampleId === "vague" && FIXTURES.vague.missing_info.every((q, i) =>
-        answered.some((a) => a.question === q.question && a.field === q.field && a.answer.trim() === E2_EXAMPLE_ANSWERS[i]),
-      )) return structuredClone(FIXTURE_E2B);
-      if (answered.length === 0) return structuredClone(FIXTURES[exampleId]);
-    }
-  }
   const source = [notes, ...answered.map((a) => a.answer)].join("\n");
   const report = ruleEngine(source);
   // Questions already answered are not asked again.

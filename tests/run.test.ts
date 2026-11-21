@@ -1,3 +1,4 @@
+import { runSample } from "../src/engine/sample";
 import { runEngine } from "../src/engine/run";
 import { EXAMPLES, FIXTURES } from "../src/fixtures/examples";
 
@@ -8,11 +9,11 @@ vi.mock("firebase/app", () => { firebaseTouched(); return {}; });
 const sample = { firebaseConfig: null, recaptchaSiteKey: "", appCheckDebugToken: "" };
 
 describe("runEngine (Sample mode)", () => {
-  it("returns the fixture with source sample and never loads Firebase", async () => {
+  it("returns general pipeline output with source sample and never loads Firebase", async () => {
     const r = await runEngine({ notes: EXAMPLES[0].notes, exampleId: "filter-reset", answers: [], locked: [], report: null }, "hybrid", sample);
     expect(r.source).toBe("sample");
     expect(r.availabilityBefore).toBeNull();
-    expect(r.report).toEqual(FIXTURES["filter-reset"]);
+    expect(r.report).toEqual(runSample({ notes: EXAMPLES[0].notes, answers: [], locked: [], report: null }));
     expect(r.ms).toBeGreaterThanOrEqual(600);
     expect(firebaseTouched).not.toHaveBeenCalled();
   });

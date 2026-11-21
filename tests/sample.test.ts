@@ -1,17 +1,12 @@
 import { runSample } from "../src/engine/sample";
-import { EXAMPLES, FIXTURES, FIXTURE_E2B, E2_EXAMPLE_ANSWERS } from "../src/fixtures/examples";
+import { EXAMPLES, FIXTURES } from "../src/fixtures/examples";
 import { mergeLocked } from "../src/domain/merge";
 
 const base = { answers: [], locked: [], report: null };
 
 describe("runSample", () => {
-  it.each(EXAMPLES.map((e) => [e.id, e] as const))("returns the %s fixture", (_id, e) => {
-    expect(runSample({ ...base, notes: e.notes, exampleId: e.id })).toEqual(FIXTURES[e.id]);
-  });
-  it("returns E2b when all four E2 questions have the supplied example answers", () => {
-    const qs = FIXTURES.vague.missing_info;
-    const answers = qs.map((q, i) => ({ question: q.question, field: q.field, answer: E2_EXAMPLE_ANSWERS[i], answeredAt: 1 }));
-    expect(runSample({ ...base, notes: EXAMPLES[1].notes, exampleId: "vague", answers })).toEqual(FIXTURE_E2B);
+  it.each(EXAMPLES)("routes $id through the same pipeline with or without a fixture label", (e) => {
+    expect(runSample({ ...base, notes: e.notes, exampleId: e.id })).toEqual(runSample({ ...base, notes: e.notes }));
   });
   it("uses the tester's own clarifications even when all four E2 questions are answered", () => {
     const notes = EXAMPLES[1].notes;
