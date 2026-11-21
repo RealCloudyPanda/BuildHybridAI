@@ -85,7 +85,7 @@ export function ruleEngine(source: string): Report {
 
 export function runSample(input: SampleInput): Report {
   const { notes, answers } = input;
-  const answered = answers.filter((a) => a.answer.trim());
+  const answered = answers.filter((a) => a.answer.trim() && !/^(?:unknown|not sure|unsure|no idea|n\/a|maybe|idk|don.t know)[.!?]*$/i.test(a.answer.trim()));
   const source = [notes, ...answered.map((a) => a.answer)].join("\n");
   const report = ruleEngine(source);
   // Clarifications target their named fields; an answer is not proof of completeness.
@@ -105,5 +105,5 @@ export function runSample(input: SampleInput): Report {
 }
 
 function clausesFor(notes: string, answers: Answer[], field: "expected"): string[] {
-  return [...new Set([...splitClauses(notes).filter((c) => EXPECTED.test(c)), ...answers.filter((a) => a.field === field).map((a) => a.answer)].map((s) => s.trim().toLowerCase()))];
+  return [...new Set([...splitClauses(notes).filter((c) => EXPECTED.test(c)), ...answers.filter((a) => a.field === field).map((a) => a.answer)].map((s) => s.trim().toLowerCase().replace(/^(?:expected|expect)(?:\s+to)?\s*:?\s*/, "").replace(/[.!?]+$/, "")))];
 }

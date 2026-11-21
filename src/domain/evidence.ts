@@ -9,7 +9,8 @@ export function evidenceFor(draft: Draft): Evidence[] {
   return (['title', 'steps', 'expected', 'actual', 'environment'] as Field[]).flatMap((field) => {
     const raw = draft.report![field];
     return (Array.isArray(raw) ? raw : [raw]).filter(Boolean).map((text) => {
-      const excerpt = sources.find((s) => normalize(s).includes(normalize(text)));
+      const normalized = normalize(text);
+      const excerpt = normalized ? sources.find((s) => normalize(s).includes(normalized)) : undefined;
       return { field, text, status: draft.locked.includes(field) ? 'tester confirmed' : excerpt ? 'source match' : 'needs review', excerpt } as Evidence;
     });
   });
