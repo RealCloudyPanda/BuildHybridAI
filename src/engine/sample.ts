@@ -29,8 +29,8 @@ const FREQUENCY = /\b(every time|always|sometimes|once|each time|intermittent)/i
 
 export function splitClauses(text: string): string[] {
   return text
-    .split(/\n|->|→|;|\.\s|,\s*and then\s|,\s*then\s|\sthen\s|,\s/i)
-    .map((c) => c.trim().replace(/[.\s]+$/, ""))
+    .split(/\n|->|→|;|\.(?!\d)\s|,\s*and then\s|,\s*then\s|\sthen\s|,\s/i)
+    .map((c) => c.trim().replace(/^\d+[.)]\s+/, "").replace(/[.\s]+$/, ""))
     .filter((c) => c.length > 1);
 }
 
@@ -45,7 +45,10 @@ function environmentOf(source: string): { env: string[]; browser?: string } {
   const os = OSES.find(([re]) => re.test(source))?.[1];
   const device = DEVICES.find((d) => word(new RegExp(`\\b${d}\\b`, "i"), source));
   const parts: string[] = [];
-  if (browser) parts.push(browser);
+  if (browser) {
+    const version = source.match(new RegExp(`\\b${browser}\\s+(?:v(?:ersion)?\\s*)?(\\d+(?:\\.\\d+)*)`, "i"))?.[1];
+    parts.push(version ? `${browser} ${version}` : browser);
+  }
   if (os) parts.push(parts.length ? `on ${os}` : os);
   if (device && device.toLowerCase() !== (os ?? "").toLowerCase()) parts.push(parts.length ? device : device[0].toUpperCase() + device.slice(1));
   return { env: parts.length ? [parts.join(" ")] : [], browser };
@@ -54,16 +57,16 @@ function environmentOf(source: string): { env: string[]; browser?: string } {
 /** Deterministic, rule-based report writer. No AI. */
 export function ruleEngine(source: string): Report {
   const clauses = splitClauses(source);
-  const actualClause = clauses.find((c) => ACTUAL.test(c) && !EXPECTED.test(c));
+  const actualClause = clauses.find((c) => (/^actual\s*:/i.test(c) || ACTUAL.test(c)) && !EXPECTED.test(c));
   const expectedClause = clauses.find((c) => EXPECTED.test(c));
   const steps = clauses
-    .filter((c) => c !== actualClause && c !== expectedClause && ACTION.test(c))
-    .map(sentence)
+    .filter((c) => c !== actualClause && c !== expectedClause && (ACTION.test(c) || /^steps?\s*:/i.test(c)))
+    .map((c) => sentence(c.replace(/^steps?\s*:\s*/i, "")))
     .slice(0, 10);
   const expected = expectedClause
-    ? sentence(expectedClause.replace(/^.*?\b(expected|expect)\b(\s+to)?\s*/i, "").replace(/^it\s+/i, "It "))
+    ? sentence(expectedClause.replace(/^.*?\b(expected|expect)\b(\s+to)?\s*:?\s*/i, "").replace(/^it\s+/i, "It "))
     : "";
-  const actual = actualClause ? sentence(actualClause) : "";
+  const actual = actualClause ? sentence(actualClause.replace(/^actual\s*:\s*/i, "")) : "";
   const { env, browser } = environmentOf(source);
   const titleBase = (actualClause ?? clauses[0] ?? "Bug report").replace(/[.\s]+$/, "");
   const title = (titleBase[0]?.toUpperCase() ?? "") + titleBase.slice(1, 80);
