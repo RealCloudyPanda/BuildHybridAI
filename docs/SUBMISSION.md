@@ -92,3 +92,11 @@ assistants under my direction and checked by running them. [[OWNER: name the ass
 **Testing instructions** (paste into the form):
 
 > Open the hosted URL in desktop Chrome. With no setup the app runs in **Sample mode** (labelled `Sample · no AI`): click an example chip, then **Write report**. For live hybrid inference the hosted build uses my Firebase project with App Check; on-device runs need Chrome 139+ with `chrome://flags/#prompt-api-for-gemini-nano-multimodal-input` enabled, then **On-device → Prepare on-device model**. The demo shop with a planted bug is at `/demo-shop/index.html`.
+
+## Before you press submit
+- [ ] One real `On device` run and one real `In cloud` run recorded on your own Firebase project.
+- [ ] Hosted on Firebase Hosting (`npm run build && npx firebase-tools deploy --only hosting --project <id>`) with a reCAPTCHA Enterprise key registered for that domain, and the link tested in a private window.
+- [ ] No debug token, API key or project secret anywhere in the repo, video or form.
+- [ ] Video under 3:00, public on YouTube, English.
+- [ ] Every `[[OWNER]]` line replaced or removed.
+- [ ] Submit by Nov 28; the deadline is Nov 30, 5:00 PM ET.
