@@ -32,7 +32,6 @@ const DEVICES: [string, string[]][] = [
   ["phone", ["phone"]],
 ];
 
-/** Everything the report may draw on: notes, answers, locked field values. */
 export function sourceTextFor(draft: Pick<Draft, "notes" | "answers" | "locked" | "report">): string {
   const parts = [draft.notes, ...draft.answers.map((a) => a.answer)];
   if (draft.report) {
@@ -56,7 +55,6 @@ function fieldTexts(r: Report): { field: Field; index?: number; text: string }[]
 
 const stripPunct = (s: string) => s.replace(/[.,;:!?)\]]+$/, "");
 
-/** Flags versions, browsers, OSes, devices, URLs, numbers and quotes that aren't in the source text. */
 export function inventionCheck(report: Report, sourceText: string, acceptedFlags: string[] = []): Flag[] {
   const src = norm(sourceText);
   const accepted = new Set(acceptedFlags.map((f) => f.toLowerCase()));
@@ -75,7 +73,6 @@ export function inventionCheck(report: Report, sourceText: string, acceptedFlags
     const base = { field, index } as const;
     const flag = (kind: FlagKind, s: string) => add({ ...base, kind, text: s });
 
-    // URLs first, so their digits and dots aren't flagged twice.
     const urlSpans: [number, number][] = [];
     for (const m of t.matchAll(/https?:\/\/\S+|\b\w+\.\w{2,}\/\S*/g)) {
       const u = stripPunct(m[0]);
@@ -104,7 +101,7 @@ export function inventionCheck(report: Report, sourceText: string, acceptedFlags
     for (const m of t.matchAll(/\b\d+(?:\.\d+)*(?:\s?(?:ms|s|sec|seconds|px|%|items|times))?(?![\w.]*\d)\b/g)) {
       if (inUrl(m.index!)) continue;
       const num = m[0].match(/^\d+(?:\.\d+)*/)![0];
-      if (num.includes(".")) continue; // handled as version
+      if (num.includes(".")) continue;
       if (Number(num) < 2) continue;
       if (/^(st|nd|rd|th)\b/i.test(t.slice(m.index! + num.length))) continue;
       if (!hasWord(src, num)) {

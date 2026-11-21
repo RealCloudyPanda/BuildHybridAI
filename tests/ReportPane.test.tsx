@@ -14,7 +14,7 @@ describe("ReportPane", () => {
   it("renders gaps for the vague example", () => {
     const d = { ...newDraft(EXAMPLES[1]), report: FIXTURES.vague, lastRun: { source: "sample" as const, ms: 651, availabilityBefore: null, at: 1, privacy: "hybrid" as const } };
     render(<ReportPane {...props} draft={d} />);
-    expect(screen.getAllByText("Needs info")).toHaveLength(3); // expected, actual, environment
+    expect(screen.getAllByText("Needs info")).toHaveLength(3);
     expect(screen.getByText(/Sample · no AI/)).toBeInTheDocument();
     expect(screen.getByLabelText("Expected")).toHaveClass("gap");
   });

@@ -26,7 +26,7 @@ describe("modelFor", () => {
     const ai = {} as any;
     modelFor(ai, "hybrid");
     modelFor(ai, "local-only");
-    modelFor(ai, "hybrid"); // cached
+    modelFor(ai, "hybrid");
     expect(captured).toHaveLength(2);
     expect(captured[0].mode).toBe("prefer_on_device");
     expect(captured[1].mode).toBe("only_on_device");

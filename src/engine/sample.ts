@@ -38,7 +38,7 @@ const sentence = (s: string) => {
   const t = s.trim().replace(/[.\s]+$/, "");
   return t ? t[0].toUpperCase() + t.slice(1) + "." : "";
 };
-// Unknowns are gaps, including when the tester used a field label.
+
 const unknown = (s: string) => /^(?:unknown|not (?:yet )?known|not sure|unsure|no idea|n\/a|maybe|idk|don[’']?t know|not (?:tested|recorded|provided|specified)|tbd|\?+)[.!?]*$/i.test(s.trim());
 const fieldValue = (s: string) => s.replace(/^(?:actual(?: result)?|expected(?: result)?|environment|steps?)\s*:\s*/i, "");
 const word = (re: RegExp, s: string) => re.test(s);
@@ -57,7 +57,6 @@ function environmentOf(source: string): { env: string[]; browser?: string } {
   return { env: parts.length ? [parts.join(" ")] : [], browser };
 }
 
-/** Deterministic, rule-based report writer. No AI. */
 export function ruleEngine(source: string): Report {
   const clauses = splitClauses(source).filter((c) => !unknown(fieldValue(c)));
   const actualClause = clauses.find((c) => (/^actual(?: result)?\s*:/i.test(c) || ACTUAL.test(c)) && !EXPECTED.test(c));
@@ -91,7 +90,7 @@ export function runSample(input: SampleInput): Report {
   const answered = answers.filter((a) => a.answer.trim() && !unknown(fieldValue(a.answer)));
   const source = [notes, ...answered.map((a) => a.answer)].join("\n");
   const report = ruleEngine(source);
-  // Clarifications target their named fields; an answer is not proof of completeness.
+
   for (const answer of answered) {
     const value = sentence(fieldValue(answer.answer));
     if (answer.field === "expected" || answer.field === "actual") report[answer.field] = value;

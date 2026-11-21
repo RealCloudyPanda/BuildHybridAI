@@ -9,7 +9,6 @@ interface LanguageModelGlobal {
   availability(options?: unknown): Promise<string>;
 }
 
-/** Reads Chrome's Prompt API availability for display and routing. "unsupported" if the API is missing. */
 export async function readAvailability(): Promise<Availability> {
   const lm = (globalThis as unknown as { LanguageModel?: LanguageModelGlobal }).LanguageModel;
   if (!lm || typeof lm.availability !== "function") return "unsupported";

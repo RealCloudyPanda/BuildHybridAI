@@ -1,5 +1,3 @@
-/* Production shell cache only. No notes, settings, prompts, provider or API responses. */
-// The build embeds the manifest, so restarted workers never need a network lookup.
 const manifest = __SHELL_MANIFEST__;
 const scope = new URL(self.registration.scope);
 const cachePrefix = 'repro-shell-' + encodeURIComponent(scope.pathname) + '-';
@@ -15,7 +13,7 @@ self.addEventListener('install', (event) => event.waitUntil((async () => {
 self.addEventListener('activate', (event) => event.waitUntil((async () => {
   const m = await readManifest();
   const names = await caches.keys();
-  // Keep only this worker's newest cache, determined by successful installation.
+
   const own = names.filter((n) => n.startsWith(cachePrefix) || (scope.pathname === '/' && /^repro-shell-(?:[a-f0-9]{16}|obsolete)$/.test(n)));
   for (const n of own) if (n !== cacheName) await caches.delete(n);
   await self.clients.claim();
@@ -26,7 +24,7 @@ self.addEventListener('fetch', (event) => {
   if (!url.pathname.startsWith(scope.pathname)) return;
   const path = url.pathname === scope.pathname ? shellUrl('index.html') : url.href;
   event.respondWith((async () => {
-    // Exact cache membership is the allowlist, never runtime caching.
+
     const cached = await (await caches.open(cacheName)).match(path);
     return cached || fetch(event.request);
   })());

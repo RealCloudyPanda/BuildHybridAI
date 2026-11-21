@@ -83,7 +83,6 @@ export const FIXTURE_E2B: Report = {
   missing_info: [{ field: "frequency", question: "Does this happen every time, or only sometimes?" }],
 };
 
-/** "Fill example answers" for E2, in question order. */
 export const E2_EXAMPLE_ANSWERS = [
   "Turned on In stock only, scrolled down to Cookware, opened the Trail Kettle, pressed Back.",
   "The In stock only toggle stays on but the page jumps back to the top.",

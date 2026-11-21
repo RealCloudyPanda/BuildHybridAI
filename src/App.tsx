@@ -49,7 +49,7 @@ export default function App() {
       const runId = (runIds.current.get(id) ?? 0) + 1;
       runIds.current.set(id, runId);
       const input = { notes: d.notes, answers, exampleId: d.exampleId, locked: d.locked, report: d.report };
-      // Check what will actually be sent, regardless of the debounced notes preview.
+
       const privacy = d.privacy === "hybrid" && !d.privacyOverride && scanSensitive(buildPrompt(input)).length
         ? "local-only" : d.privacy;
       if (privacy !== d.privacy || answers !== d.answers) update(id, { privacy, answers });

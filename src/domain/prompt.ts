@@ -25,10 +25,6 @@ export interface PromptInput {
   locked: Field[];
 }
 
-/**
- * One self-contained single-turn prompt. Instructions live inline because the
- * SDK's on-device path drops systemInstruction (ADR 0001).
- */
 export function buildPrompt({ notes, answers, report, locked }: PromptInput): string {
   const parts = [RULES, `NOTES\n"""\n${notes.trim()}\n"""`];
   const answered = answers.filter((a) => a.answer.trim());

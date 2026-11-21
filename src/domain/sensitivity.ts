@@ -22,7 +22,6 @@ const LABELS: Record<SensitiveKind, string> = {
   "secret-like": "a token",
 };
 
-/** Finds emails, internal hosts, IPs and token-like strings. Overlapping matches keep the earliest, longest one. */
 export function scanSensitive(text: string): SensitiveMatch[] {
   const all: SensitiveMatch[] = [];
   for (const [kind, re] of PATTERNS) {
@@ -51,7 +50,6 @@ export function labelsFor(matches: SensitiveMatch[]): string[] {
 const joinList = (xs: string[]) =>
   xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 
-/** "Found an internal URL, an email and a token." */
 export function summarise(matches: SensitiveMatch[]): string {
   const labels = labelsFor(matches);
   return labels.length ? `Found ${joinList(labels)}.` : "";

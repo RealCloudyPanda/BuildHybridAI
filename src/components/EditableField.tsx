@@ -28,7 +28,7 @@ interface Props {
   onChange: (v: string) => void;
   onToggleLock: (f: Field) => void;
   big?: boolean;
-  preview?: ReactNode; // shown instead of the editor when the field has flags
+  preview?: ReactNode;
 }
 
 export function EditableField({ field, label, value, locked, index, onChange, onToggleLock, big, preview }: Props) {

@@ -20,7 +20,7 @@ test('production shell reloads offline with saved report and downloadable handof
   const title = page.getByRole('textbox', { name: 'Title' });
   await expect(title).not.toHaveValue('');
   await title.fill('Reviewed filter reset');
-  await page.waitForTimeout(800); // IndexedDB autosave debounce
+  await page.waitForTimeout(800);
   await context.setOffline(true);
   const cdp = await context.newCDPSession(page);
   await cdp.send('ServiceWorker.enable');

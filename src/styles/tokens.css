@@ -1,14 +1,14 @@
 :root {
-  /* Colour: lab notebook paper, ink, and three "where it ran" signals. */
+
   --paper: oklch(0.975 0.008 85);
   --paper-2: oklch(0.955 0.01 85);
   --surface: oklch(0.995 0.004 85);
   --ink: oklch(0.24 0.02 260);
-  /* --ink-2 on --paper ≈ 6.9:1 (L 0.45 vs 0.975; ~#575c68 on #f8f5ef), passes WCAG AA 4.5:1. */
+
   --ink-2: oklch(0.45 0.02 260);
-  --ink-3: oklch(0.56 0.015 260); /* large/secondary only, ≈4.6:1 on paper */
+  --ink-3: oklch(0.56 0.015 260);
   --rule: oklch(0.88 0.01 85);
-  --rule-strong: oklch(0.62 0.01 260); /* input borders, ≥3:1 */
+  --rule-strong: oklch(0.62 0.01 260);
   --signal: oklch(0.78 0.15 75);
   --signal-tint: oklch(0.97 0.035 85);
   --signal-ink: oklch(0.42 0.11 65);

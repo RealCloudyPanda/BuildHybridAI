@@ -7,10 +7,6 @@ export interface FirebaseHandles { app: FirebaseApp; ai: AI }
 
 let cached: FirebaseHandles | null | undefined;
 
-/**
- * Initialise Firebase, App Check and Firebase AI Logic once per page.
- * Config comes only from the Settings drawer (ADR 0003). Returns null in Sample mode.
- */
 export function initFirebase(settings: Settings): FirebaseHandles | null {
   if (cached !== undefined) return cached;
   if (!settings.firebaseConfig) {
@@ -18,7 +14,7 @@ export function initFirebase(settings: Settings): FirebaseHandles | null {
     return cached;
   }
   if (settings.appCheckDebugToken) {
-    // Must be set before initializeAppCheck; it is read once per page load.
+
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
       settings.appCheckDebugToken;
   }
@@ -37,7 +33,6 @@ export function initFirebase(settings: Settings): FirebaseHandles | null {
   return cached;
 }
 
-/** Test helper. */
 export function resetFirebaseForTests() {
   cached = undefined;
 }

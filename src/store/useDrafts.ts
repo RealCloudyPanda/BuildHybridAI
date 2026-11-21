@@ -4,7 +4,6 @@ import { deleteDraft, listDrafts, newDraft, saveDraft } from "./drafts";
 
 export const AUTOSAVE_MS = 400;
 
-/** Holds all drafts and the active one; persists edits to IndexedDB after a 400 ms debounce. */
 export function useDrafts() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const currentDrafts = useRef<Draft[]>([]);
@@ -87,11 +86,11 @@ export function useDrafts() {
       rest.push(replacement);
       schedule(replacement);
     }
-    // Make late events ignore this draft before yielding to IndexedDB.
+
     publish(rest);
     setActiveId((cur) => (cur === id ? rest[0].id : cur));
     pending.current.delete(id);
-    // IndexedDB applies any already-dispatched write to this store before this delete.
+
     await deleteDraft(id);
   }, [publish, schedule]);
 

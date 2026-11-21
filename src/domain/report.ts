@@ -57,7 +57,6 @@ const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const strArr = (v: unknown) =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").map((x) => x.trim()).filter(Boolean) : [];
 
-/** Tolerant parser for model output: strips fences, finds the JSON object, coerces shapes. */
 export function parseReport(text: string): Report {
   const unfenced = text.replace(/```(?:json)?/gi, "").trim();
   let data = tryParse(unfenced);

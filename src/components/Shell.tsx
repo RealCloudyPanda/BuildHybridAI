@@ -9,7 +9,6 @@ interface Props {
   showReportTab: boolean;
 }
 
-/** Three columns: drafts rail, notes, report. Rail becomes a drawer under 1100 px; panes become tabs under 760 px. */
 export function Shell({ rail, notes, report, tab, onTab, showReportTab }: Props) {
   return (
     <>

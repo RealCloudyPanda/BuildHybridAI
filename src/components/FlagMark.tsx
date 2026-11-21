@@ -13,7 +13,6 @@ const KIND_TEXT: Record<Flag["kind"], string> = {
 
 interface Props { flag: Flag; children: string; onRemove: (f: Flag) => void; onKeep: (f: Flag) => void }
 
-/** An amber-underlined span with a keyboard-accessible "Not in your notes" popover. */
 export function FlagMark({ flag, children, onRemove, onKeep }: Props) {
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
@@ -74,7 +73,6 @@ export function FlagMark({ flag, children, onRemove, onKeep }: Props) {
   );
 }
 
-/** Splits text into plain parts and FlagMarks for each flagged substring. */
 export function FlaggedText({ text, flags, onRemove, onKeep }: { text: string; flags: Flag[]; onRemove: (f: Flag) => void; onKeep: (f: Flag) => void }) {
   const spans: { start: number; end: number; flag: Flag }[] = [];
   const lower = text.toLowerCase();

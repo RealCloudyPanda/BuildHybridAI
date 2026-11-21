@@ -26,7 +26,6 @@ const REQUIRED = ["apiKey", "projectId", "appId"] as const;
 
 export type ParseConfigResult = { ok: true; config: FirebaseWebConfig } | { ok: false; error: string };
 
-/** Accepts JSON or the JS object literal copied from the Firebase console. */
 export function parseFirebaseConfig(input: string): ParseConfigResult {
   const text = input.trim();
   if (!text) return { ok: false, error: "Paste your Firebase web config." };

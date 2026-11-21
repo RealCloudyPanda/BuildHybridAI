@@ -8,12 +8,6 @@ export const CLOUD_MODEL = "gemini-3.5-flash-lite";
 
 const models = new WeakMap<AI, Map<Privacy, GenerativeModel>>();
 
-/**
- * One GenerativeModel per privacy setting. The same JSON schema goes to the cloud
- * (responseJsonSchema) and to Chrome (responseConstraint).
- * We use responseJsonSchema (not responseSchema) because REPORT_SCHEMA is a plain JSON
- * Schema object, which is what responseJsonSchema is typed for in firebase 13.4.
- */
 export function modelFor(ai: AI, privacy: Privacy): GenerativeModel {
   let byPrivacy = models.get(ai);
   if (!byPrivacy) models.set(ai, (byPrivacy = new Map()));
@@ -60,12 +54,11 @@ export async function runHybrid(ai: AI, prompt: string, privacy: Privacy): Promi
     throw toEngineError(e);
   }
   const source = (r.response.inferenceSource ?? "in_cloud") as HybridResult["source"];
-  // Invariant (ADR 0002): Local-only output must never come from the cloud.
+
   if (privacy === "local-only" && source !== "on_device") throw new EngineError("privacy-violation");
   return { text: r.response.text(), source, availabilityBefore };
 }
 
-/** Starts the on-device model download. Call only from a click handler (user gesture). */
 export async function prepareDeviceModel(ai: AI, onProgress: (p: number) => void): Promise<void> {
   await modelFor(ai, "hybrid").initializeDeviceModel(onProgress);
 }

@@ -1,7 +1,7 @@
 import type { Draft, Field } from './types';
 export type EvidenceStatus = 'source match' | 'tester confirmed' | 'needs review';
 export interface Evidence { field: Field; text: string; status: EvidenceStatus; excerpt?: string }
-/** Literal source support only; this deliberately makes no truth/confidence claim. */
+
 export function evidenceFor(draft: Draft): Evidence[] {
   if (!draft.report) return [];
   const sources = [draft.notes, ...draft.answers.map((a) => a.answer)];

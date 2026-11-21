@@ -17,7 +17,7 @@ interface Props {
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 export function NotesPane({ draft, running, onChange, onRun }: Props) {
-  // The scan follows the notes with a 300 ms debounce while typing.
+
   const [scanText, setScanText] = useState(draft.notes);
   useEffect(() => {
     if (scanText === draft.notes) return;
@@ -30,7 +30,6 @@ export function NotesPane({ draft, running, onChange, onRun }: Props) {
   const visibleMatches = scanText === draft.notes ? matches : [];
   const summary = summarise(visibleMatches);
 
-  // F4: first sensitive match in a draft switches it to Local-only, unless the tester chose Hybrid.
   useEffect(() => {
     if (visibleMatches.length && draft.privacy === "hybrid" && !draft.privacyOverride) onChange({ privacy: "local-only" });
   }, [visibleMatches.length, draft.id, draft.privacy, draft.privacyOverride, onChange]);

@@ -1,6 +1,6 @@
 import type { Availability, Privacy } from '../domain/types';
 export type Route = 'sample' | 'device' | 'cloud' | 'stop';
-/** Predicts policy, never claims an actual SDK inference source. */
+
 export function routingPolicy({ configured, privacy, availability, online }: { configured: boolean; privacy: Privacy; availability: Availability; online: boolean }): { route: Route; reason: string } {
   if (!configured) return { route: 'sample', reason: 'No Firebase configuration: deterministic rules, no AI.' };
   if (availability === 'available') return { route: 'device', reason: 'Device model is ready.' };

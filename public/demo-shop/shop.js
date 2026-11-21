@@ -1,4 +1,3 @@
-// Trailhead Supply: a tiny fictional shop with two PLANTED bugs for the Repro Offline demo.
 const PRODUCTS = [
   ["ridgeline-2p", "Ridgeline 2P", "Tents", 289, true],
   ["ridgeline-3p", "Ridgeline 3P", "Tents", 349, true],
@@ -15,14 +14,13 @@ const PRODUCTS = [
 ].map(([slug, name, category, price, inStock]) => ({ slug, name, category, price, inStock }));
 const CATEGORIES = ["All", "Tents", "Packs", "Lighting", "Cookware"];
 
-// Keep the intentionally lost-scroll bug reproducible across browser history restoration.
 history.scrollRestoration = "manual";
 let activeCategory = "All";
 const app = document.getElementById("app");
 const inStockOnly = () => sessionStorage.getItem("inStockOnly") === "1";
 
 function renderList() {
-  activeCategory = "All"; // BUG(planted): resets filter on every render
+  activeCategory = "All";
   drawList();
 }
 
@@ -78,7 +76,7 @@ function route() {
   const m = location.hash.match(/^#\/product\/(.+)$/);
   if (m) renderDetail(m[1]);
   else renderList();
-  window.scrollTo(0, 0); // BUG(planted): always scrolls to top
+  window.scrollTo(0, 0);
 }
 
 window.addEventListener("hashchange", route);

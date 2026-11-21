@@ -12,7 +12,6 @@ interface Props {
   describedBy?: string;
 }
 
-/** A mono textarea with a mirror layer behind it that underlines sensitive spans. */
 export function HighlightedTextarea({ id, value, matches, over, onChange, onSubmit, counter, describedBy }: Props) {
   const layer = useRef<HTMLDivElement>(null);
   const parts: (string | { t: string; k: string })[] = [];

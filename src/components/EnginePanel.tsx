@@ -37,7 +37,6 @@ export function EnginePanel({ live, settings, lastRun, open, onToggle, onClose }
     return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onDown); };
   }, [open, onClose]);
 
-  // Must run inside the click handler: starting a download needs a user gesture.
   const prepare = async () => {
     setErr("");
     setProgress(0);
