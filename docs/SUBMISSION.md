@@ -82,3 +82,9 @@ Everything in the repo was written during the submission period (first commit 20
 code is incorporated beyond open-source dependencies. Planning, code and docs were drafted with AI coding
 assistants under my direction and checked by running them. [[OWNER: name the assistants you used.]]
 ```
+
+**Built with:** `firebase` · `firebase-ai-logic` · `gemini-nano` · `chrome-prompt-api` · `gemini` · `app-check` · `react` · `typescript` · `vite` · `indexeddb`
+
+**Try it out:** [[hosted URL once deployed]] · `https://github.com/RealCloudyPanda/BuildHybridAI`
+
+**Platform:** Web / Chrome
