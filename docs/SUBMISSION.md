@@ -40,3 +40,45 @@ Setup: desktop Chrome with Gemini Nano already prepared, your live config saved 
 **Elevator pitch** (≤200 chars):
 
 > Rough QA notes in, reproducible bug report out. Gemini Nano writes it on your device through Firebase AI Logic, sensitive notes never leave, and it asks instead of guessing.
+
+**About the project** (Devpost's markdown field):
+
+```markdown
+## Inspiration
+Every "can't reproduce" ticket costs a round trip. QA notes are written in shorthand and often contain
+internal URLs, test-account emails and session tokens, so testers can't, or shouldn't, paste them into a
+cloud chatbot. General AI writers also fill gaps with confident guesses like a made-up browser version.
+
+## What it does
+Paste rough notes and get an editable bug report: title, steps, expected, actual, environment. Anything the
+notes don't say becomes a question instead of a guess; answer it and the report updates. A deterministic
+invention check flags any version, browser, number or URL that isn't in your notes. Notes with emails,
+internal hosts or tokens switch to Local-only automatically. Drafts autosave in your browser.
+
+## How I built it
+Firebase AI Logic's hybrid web SDK (`firebase` 13.4). Hybrid drafts use `InferenceMode.PREFER_ON_DEVICE`;
+sensitive drafts use `ONLY_ON_DEVICE`, which never falls back to the cloud. Gemini Nano runs in Chrome
+through the Prompt API, with `gemini-3.5-flash-lite` as the cloud fallback. One JSON schema drives both
+`responseJsonSchema` (cloud) and `responseConstraint` (device). The badge reads `response.inferenceSource`,
+so it always says where a run really happened, and a "Prepare on-device model" button calls
+`initializeDeviceModel` with progress. App Check protects the cloud path. React, TypeScript, Vite and
+IndexedDB for drafts.
+
+## Challenges
+The SDK's on-device path drops `systemInstruction`, so every instruction goes into one self-contained prompt
+both models receive. `PREFER_ON_DEVICE` doesn't wait for a model download, so a fresh browser silently uses
+the cloud; the explicit Prepare step and a "why did this run in the cloud" reason fix that. A defensive check
+discards any Local-only result that reports `in_cloud`.
+
+## What I learned
+Hybrid AI design is mostly about honesty: telling the user where something ran and what the model didn't know.
+
+## What's next
+Screenshot and console-log input once on-device multimodal is available, team templates, and a Jira or
+GitHub export that redacts sensitive details.
+
+## Built during the contest, and with AI assistance
+Everything in the repo was written during the submission period (first commit 2026-11-20); no pre-existing
+code is incorporated beyond open-source dependencies. Planning, code and docs were drafted with AI coding
+assistants under my direction and checked by running them. [[OWNER: name the assistants you used.]]
+```
