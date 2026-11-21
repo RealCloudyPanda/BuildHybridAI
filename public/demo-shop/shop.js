@@ -15,6 +15,8 @@ const PRODUCTS = [
 ].map(([slug, name, category, price, inStock]) => ({ slug, name, category, price, inStock }));
 const CATEGORIES = ["All", "Tents", "Packs", "Lighting", "Cookware"];
 
+// Keep the intentionally lost-scroll bug reproducible across browser history restoration.
+history.scrollRestoration = "manual";
 let activeCategory = "All";
 const app = document.getElementById("app");
 const inStockOnly = () => sessionStorage.getItem("inStockOnly") === "1";
