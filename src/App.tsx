@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { inputFingerprint } from "./domain/runIdentity";
 import { Header } from "./components/Header";
 import { Shell } from "./components/Shell";
 import { NotesPane } from "./components/NotesPane";
@@ -39,34 +40,41 @@ export default function App() {
   const [running, setRunning] = useState<Record<string, Running>>({});
   const [errors, setErrors] = useState<Record<string, EngineError | null>>({});
 
+  const runIds = useRef(new Map<string, number>());
   const run = useCallback(
     async (d: Draft, answers = d.answers) => {
       const id = d.id;
+      const runId = (runIds.current.get(id) ?? 0) + 1;
+      runIds.current.set(id, runId);
       const input = { notes: d.notes, answers, exampleId: d.exampleId, locked: d.locked, report: d.report };
       // Check what will actually be sent, regardless of the debounced notes preview.
       const privacy = d.privacy === "hybrid" && !d.privacyOverride && scanSensitive(buildPrompt(input)).length
         ? "local-only" : d.privacy;
       if (privacy !== d.privacy || answers !== d.answers) update(id, { privacy, answers });
+      const fingerprint = inputFingerprint({ ...d, privacy, answers });
       setRunning((r) => ({ ...r, [id]: { startedAt: Date.now(), privacy, live } }));
       setErrors((e) => ({ ...e, [id]: null }));
       setTab("report");
       try {
         const res = await runEngine(input, privacy, settings);
-        update(id, {
-          answers,
-          report: res.report,
-          lastRun: { source: res.source, ms: res.ms, availabilityBefore: res.availabilityBefore, at: Date.now(), privacy },
+        update(id, (current) => {
+          if (runIds.current.get(id) !== runId || inputFingerprint(current) !== fingerprint) {
+            toast("Inputs changed during the run. Run again to refresh the report.");
+            return {};
+          }
+          return { answers, report: res.report,
+            lastRun: { source: res.source, ms: res.ms, availabilityBefore: res.availabilityBefore, at: Date.now(), privacy, inputNotes: d.notes, runId } };
         });
       } catch (e) {
-        setErrors((x) => ({ ...x, [id]: toEngineError(e) }));
+        if (runIds.current.get(id) === runId) setErrors((x) => ({ ...x, [id]: toEngineError(e) }));
       } finally {
-        setRunning((r) => {
+        if (runIds.current.get(id) === runId) setRunning((r) => {
           const { [id]: _, ...rest } = r;
           return rest;
         });
       }
     },
-    [live, settings, update],
+    [live, settings, update, toast],
   );
 
   const flags = useMemo(

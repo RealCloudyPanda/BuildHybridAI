@@ -19,7 +19,7 @@ export interface Answer { question: string; field: MissingField; answer: string;
 export type FlagKind = "version" | "browser" | "os" | "device" | "url" | "number" | "quoted";
 export interface Flag { field: Field; index?: number; text: string; kind: FlagKind }
 
-export type LastRun = Omit<RunResult, "report" | "rawText"> & { at: number; privacy: Privacy };
+export type LastRun = Omit<RunResult, "report" | "rawText"> & { at: number; privacy: Privacy; inputNotes?: string; runId?: number };
 
 export interface Draft {
   id: string;
