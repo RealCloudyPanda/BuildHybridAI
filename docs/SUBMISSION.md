@@ -32,3 +32,11 @@ Setup: desktop Chrome with Gemini Nano already prepared, your live config saved 
 | 2:15–2:30 | An invention-check flag: a real one if a live run produced it, otherwise **Simulate a made-up detail** in Sample mode, said out loud as a simulation. Press Remove. | "And if a model ever adds a detail that isn't in your notes, a deterministic check flags it." |
 | 2:30–2:45 | **Only if it really happened:** a second person reproduces the bug from the copied Markdown alone. Otherwise: "Try it yourself at /demo-shop." | [[OWNER: real reproducer result, or cut]] |
 | 2:45–2:50 | Title card: Repro Offline, repo and demo URLs. | "Repro Offline. Asks before it guesses." |
+
+## Devpost text
+
+**Project name:** Repro Offline
+
+**Elevator pitch** (≤200 chars):
+
+> Rough QA notes in, reproducible bug report out. Gemini Nano writes it on your device through Firebase AI Logic, sensitive notes never leave, and it asks instead of guessing.
