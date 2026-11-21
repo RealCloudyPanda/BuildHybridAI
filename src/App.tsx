@@ -21,6 +21,7 @@ import { scanSensitive } from "./domain/sensitivity";
 import type { Draft, Flag } from "./domain/types";
 import { inventionCheck, sourceTextFor } from "./domain/invention";
 import { FlaggedText } from "./components/FlagMark";
+import { RoutingLab } from "./components/RoutingLab";
 import { EvidenceReview } from "./components/EvidenceReview";
 import { InventionSummary } from "./components/InventionSummary";
 
@@ -153,7 +154,7 @@ export default function App() {
             renderPreview={renderPreview}
             summary={<InventionSummary count={flags.length} onSimulate={!live ? simulate : undefined} />}
             below={
-              <><EvidenceReview draft={active} /><MissingInfo
+              <><RoutingLab /><EvidenceReview draft={active} /><MissingInfo
                 key={`${active.id}:${active.lastRun?.at ?? ""}`}
                 draft={active}
                 running={!!running[active.id]}
