@@ -1,5 +1,7 @@
 # Submission pack: Firebase #BuildHybridAI 2026 (Best Web/Chrome)
 
+Implementation evidence update (2026-11-21): arbitrary notes now use a shared deterministic pipeline with source excerpts, tester confirmation, stale-run safeguards, downloadable Markdown and an explicit simulated routing lab. The root-hosted production build restores drafts and exports after offline reload following an online install. Automated evidence is 84 unit/component tests, two development browser tests and a separate production offline browser test. None of this is evidence of a real Firebase/model run.
+
 Draft for the owner. Nothing here has been submitted. Rules checked on firebasehybridaihackathon.devpost.com on 2026-11-21.
 
 ## Rules that matter (as read on 2026-11-21)

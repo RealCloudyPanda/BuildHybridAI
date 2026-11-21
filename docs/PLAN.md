@@ -1,5 +1,7 @@
 # Implementation plan: Repro Offline
 
+> Implemented status (2026-11-21): all notes use the same conservative deterministic pipeline; examples are input helpers. Source evidence review, source-change/stale-run protection, downloadable Markdown, simulated routing policies and a versioned production shell cache are implemented. Production root-origin offline reload and export are browser-verified after an online install. Subpath hosting is unsupported. Unit tests use simulated SDK services; real Firebase, Nano and cloud inference remain owner verification. Historical tasks below describe the original plan.
+
 Follow the tasks **in order**. One task = one commit, with the given message. Read [SPEC.md](SPEC.md) first (it is the source of truth for copy, data shapes, fixtures and visuals). Check API facts in [RESEARCH.md](RESEARCH.md). Use the terms in [GLOSSARY.md](../GLOSSARY.md) for names in code and UI copy.
 
 ## Ground rules (every task)

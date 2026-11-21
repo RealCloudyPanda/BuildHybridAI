@@ -22,7 +22,8 @@ A manual QA tester scribbles *"picked Tents, opened the Ridgeline tent, hit back
 - **Invention check.** A deterministic check flags any version, browser, OS, device, URL, number or quote in the report that isn't in your notes or answers. You can **Remove** or **Keep** each flag.
 - **Privacy routing.** A sensitivity scan finds emails, internal hosts, IPs and tokens in the notes and switches the draft to **Local-only** (`ONLY_ON_DEVICE`), which never falls back to the cloud.
 - **Source badge.** Each report says where it actually ran (`On device`, `In cloud` or `Sample · no AI`), read from the SDK's `response.inferenceSource`. If a Hybrid run went to the cloud, it explains why.
-- **Drafts** autosave to IndexedDB. **Copy as Markdown / text** asks for confirmation first if the report still contains internal details.
+- **Source evidence and handoff review** labels literal source matches, tester-confirmed fields and details needing review. Notes changed after a run trigger a stale-report warning. A simulated routing lab explains local-only, offline and cloud policies without making model calls.
+- **Drafts** autosave to IndexedDB. **Copy as Markdown / text / Download Markdown** asks for confirmation first if the report still contains internal details.
 - **Trailhead Supply**: a small demo shop at `/demo-shop/index.html` with two planted bugs to write reports about.
 
 | Vague notes become questions, not guesses | Sensitive notes switch to Local-only |
@@ -91,7 +92,7 @@ npm run dev
 
 The app opens in **Sample mode**. Click one of the three example chips, then **Write report**. The demo shop is at http://localhost:5173/demo-shop/index.html.
 
-Other commands: `npm test` (unit, component and integration tests), `npm run typecheck`, `npm run build` (static build in `dist/`), `npm run preview` (serves the build on port 4173). For the browser smoke test, run `npx playwright install chromium` once, then `npm run e2e`.
+Other commands: `npm test` (unit, component and integration tests), `npm run typecheck`, `npm run build` (static build in `dist/`), `npm run preview` (serves the build on port 4173). For the browser smoke test, run `npx playwright install chromium` once, then `npm run e2e`. To verify production offline behavior, run `npm run build` followed by `npm run e2e -- --config playwright.production.config.ts`.
 
 ## Sample mode vs Live mode
 
@@ -99,7 +100,7 @@ Other commands: `npm test` (unit, component and integration tests), `npm run typ
 |---|---|---|
 | When | No Firebase config (default) | A Firebase web config pasted into **Settings** |
 | Header | `Sample mode: no AI` (hatched chip) | `Live` |
-| Reports | Fixed fixtures for the three examples, a deterministic rule engine for anything else. **No AI.** | Firebase AI Logic hybrid inference |
+| Reports | One deterministic extraction and clarification pipeline for all notes, including the examples. **No AI.** | Firebase AI Logic hybrid inference |
 | Badge | `Sample · no AI` | `On device` or `In cloud` (from `inferenceSource`) |
 | Extras | "Fill example answers" and "Simulate a made-up detail" for the demo | Prepare on-device model, why-cloud reasons |
 
@@ -146,16 +147,16 @@ docs/                      SPEC, PLAN, RESEARCH, GRILL (design interview), ADRs,
 
 ## Testing
 
-- `npm test` covers the domain logic, IndexedDB autosave and deletion, the main components, and the live path through the installed Firebase SDK with simulated services.
-- `npm run e2e` checks all three Sample examples and runs an axe scan for serious or critical violations on the first report screen.
+- `npm test`: 84 passing tests across 21 files, covering the general pipeline, literal evidence, routing, stale async results, IndexedDB storage and the SDK path with simulated services.
+- `npm run e2e`: two browser tests pass (shop bugs plus Sample examples and axe); the production-only test is skipped here. The production config passes its separate offline reload, saved-draft, cache ownership and Markdown-download test.
 
 ## Known limitations
 
 - **Live inference still needs a check with a real Firebase project.** Automated tests exercise the SDK with simulated services. A successful cloud run requires AI Logic and App Check, and a successful on-device run also requires desktop Chrome with Gemini Nano.
 - On-device runs need desktop Chrome 139+ with the Prompt API flag. Other browsers can use Hybrid (cloud) or Sample mode only.
 - Notes are capped at 4,000 characters to stay within the ~4096-token on-device limit.
-- **Loading or reloading the app requires network access.** Once loaded, Sample-mode runs and runs with an already prepared on-device model can work offline.
-- The sample engine is a simple rule set. Outside the three examples its reports are rough, which is intended: it exists so judges can click through every screen without a config.
+- **Production offline shell:** after the first successful online load and worker installation, the root-hosted build reloads offline, restores IndexedDB drafts and downloads Markdown. The development server does not install the worker. Fresh installs require network; live model downloads and cloud inference require their own connectivity. Subpath hosting is not supported.
+- The sample engine uses conservative deterministic rules for every input. It can miss meaning, leaves unknowns open and labels literal source evidence separately from tester confirmation. It makes no model-quality claim.
 - In the dev server the demo shop lives at `/demo-shop/index.html` (`/demo-shop/` is caught by the app's SPA fallback).
 - Changing Settings reloads the page, because App Check debug mode is read once per page load.
 

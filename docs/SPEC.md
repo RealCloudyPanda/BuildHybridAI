@@ -1,5 +1,7 @@
 # Repro Offline: product spec
 
+> Implemented status (2026-11-21): all notes use the same conservative deterministic pipeline; examples are input helpers. Source evidence review, source-change/stale-run protection, downloadable Markdown, simulated routing policies and a versioned production shell cache are implemented. Production root-origin offline reload and export are browser-verified after an online install. Subpath hosting is unsupported. Unit tests use simulated SDK services; real Firebase, Nano and cloud inference remain owner verification. Historical tasks below describe the original plan.
+
 > Rough QA notes in, reproducible bug report out. On your device. It asks before it guesses.
 
 Hackathon: Firebase #BuildHybridAI 2026 (deadline **Nov 30 2026, 5 pm ET**). Target: **Best Web/Chrome App**. Stretch: Grand Prize.
