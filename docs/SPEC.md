@@ -1,6 +1,6 @@
 # Repro Offline: product spec
 
-> Implemented status (2026-11-21): all notes use the same conservative deterministic pipeline; examples are input helpers. Source evidence review, source-change/stale-run protection, downloadable Markdown, simulated routing policies and a versioned production shell cache are implemented. Production root-origin offline reload and export are browser-verified after an online install. Subpath hosting is unsupported. Unit tests use simulated SDK services; real Firebase, Nano and cloud inference remain owner verification. Historical tasks below describe the original plan.
+> Implemented status (2026-11-21): all notes use the same conservative deterministic pipeline; examples are input helpers. Source evidence review, source-change/stale-run protection, downloadable Markdown, simulated routing policies and a versioned production shell cache are implemented. Production root and `/repro/` subpath offline reload and export are browser-verified after an online install. The Run module owns per-draft snapshots, complete-prompt privacy routing, stale-result acceptance and async cleanup. Unit tests use simulated SDK services; real Firebase, Nano and cloud inference remain owner verification. Historical tasks below describe the original plan.
 
 > Rough QA notes in, reproducible bug report out. On your device. It asks before it guesses.
 
@@ -100,24 +100,31 @@ Layout (≥1100 px): `[Drafts rail 232px] [Notes pane 1fr] [Report pane 1.15fr]`
 
 ## 4. Architecture
 
+The Run module's caller interface is `createRuns(settings, drafts).run(draft, answers?)`.
+The UI renders per-draft running/error state and the returned applied/stale/failed/superseded outcome.
+The module snapshots source text, rescans the exact prompt before execution, persists submitted answers
+for retries, and accepts a result only for the latest run with an unchanged input fingerprint. A draft
+switch cannot redirect a result; deleting a draft cannot recreate it. Late completions and errors cannot
+clear a newer run's state.
+
 ```
-            ┌──────────── Notes pane ────────────┐
- notes ───► │ sensitivity scan ─► privacy setting │
-            └───────────────┬────────────────────┘
-                            ▼
-               buildPrompt(notes, answers, locked)
-                            ▼
-            runEngine(prompt, privacy)  ── no config ──► sampleEngine (rules + fixtures)
-                            │ config
-                            ▼
-      Firebase AI Logic  getGenerativeModel(ai, { mode, inCloudParams, onDeviceParams })
-         ├─ PREFER_ON_DEVICE (Hybrid)  ──► Gemini Nano in Chrome │ gemini-3.5-flash-lite (App Check)
-         └─ ONLY_ON_DEVICE (Local-only) ─► Gemini Nano in Chrome │ error, never cloud
-                            ▼
-      response.text() ─► parseReport ─► mergeLocked ─► inventionCheck ─► Report pane + badge(inferenceSource)
-                            ▼
-                    IndexedDB draft (idb-keyval)
+Notes pane → Run module (snapshot, prompt privacy, sequence, acceptance, cleanup)
+                 ↓
+             runEngine → Sample adapter (no config, no Firebase imports)
+                 └─────→ Firebase adapter → same inline prompt → Hybrid / Local-only
+                 ↓          parse + one parse retry, with unchanged privacy
+             locked-field merge + timing
+                 ↓
+Run module → originating draft update → Report pane, badge, invention check, export
+                 ↓
+             IndexedDB draft
 ```
+
+The execution adapters share `runEngine`'s result shape. Sample remains deterministic and requires no
+configuration or network. Firebase initialization stays lazy; Local-only still uses ONLY_ON_DEVICE
+on both parse attempts. Public-interface Run tests cover privacy, rejected stale results, overlapping
+success/error completion, draft switching/deletion and the offline Sample adapter. UI and SDK regressions
+remain separate checks; no live model execution is implied.
 
 Source layout (the implementer creates exactly these):
 ```
@@ -136,7 +143,8 @@ src/engine/firebase.ts         initFirebase(settings): { ai } | null  (App + App
 src/engine/hybrid.ts           runHybrid(prompt, privacy): RunResult
 src/engine/availability.ts     readAvailability(), prepareDeviceModel(onProgress)
 src/engine/sample.ts           runSample(input): RunResult
-src/engine/run.ts              runEngine(): chooses sample vs live, times the run
+src/engine/run.ts              Sample/Firebase execution adapters, parse retry, timing, locked merge
+src/engine/runs.ts             createRuns(): complete per-draft run lifecycle
 src/store/drafts.ts            IndexedDB CRUD
 src/store/settings.ts          localStorage settings + parseFirebaseConfig
 src/fixtures/examples.ts       the 3 example notes + sample fixtures

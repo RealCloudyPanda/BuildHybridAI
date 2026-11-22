@@ -47,8 +47,8 @@ Paste vague notes ("back button on the shop is weird again, lost my place") and 
 ```mermaid
 flowchart TD
   N[Notes pane] --> S[Sensitivity scan] --> P{Privacy setting}
-  N --> B["buildPrompt(notes, answers, locked fields)"]
-  B --> R{runEngine}
+  N --> RUN["Run module: snapshot, complete-prompt privacy scan"]
+  RUN --> R{runEngine}
   R -- no Firebase config --> SE["Sample engine (rules + fixtures, no AI)"]
   R -- config --> FB["Firebase AI Logic getGenerativeModel(ai, { mode, inCloudParams, onDeviceParams })"]
   P -- Hybrid --> FB
@@ -58,8 +58,11 @@ flowchart TD
   H --> PR[parseReport → mergeLocked → inventionCheck]
   L --> PR
   SE --> PR
-  PR --> UI["Report pane + inferenceSource badge"] --> DB[(IndexedDB draft)]
+  PR --> ACCEPT["Run module: latest run and unchanged source only"]
+  ACCEPT --> UI["Report pane + inferenceSource badge"] --> DB[(IndexedDB draft)]
 ```
+
+The UI calls `createRuns(settings, drafts).run(draft, answers?)` and renders its outcome. The Run module owns snapshots, submitted-answer retries, privacy routing, overlapping-run acceptance, errors and cleanup. Sample and Firebase execution adapters share parsing/merge results through `runEngine`; the Firebase SDK remains lazy-loaded.
 
 ## Firebase AI Logic hybrid, and why it is necessary
 
@@ -147,7 +150,7 @@ docs/                      SPEC, PLAN, RESEARCH, GRILL (design interview), ADRs,
 
 ## Testing
 
-- `npm test`: 92 passing tests across 21 files, covering the general pipeline, literal evidence, routing, stale async results, IndexedDB storage and the SDK path with simulated services.
+- `npm test`: 101 passing tests across 20 files, covering the general pipeline, literal evidence, routing, stale async results, IndexedDB storage and the SDK path with simulated services.
 - `npm run e2e`: two browser tests pass (shop bugs plus Sample examples and axe); the production-only test is skipped here. The production config passes its separate offline reload, saved-draft, cache ownership and Markdown-download test at both `/` and `/repro/` (use `REPRO_BASE_PATH=/repro/ npx playwright test --config playwright.production.config.ts` after the subpath build).
 
 ## Known limitations
