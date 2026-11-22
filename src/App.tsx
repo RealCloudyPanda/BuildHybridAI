@@ -1,9 +1,8 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import { inputFingerprint } from "./domain/runIdentity";
+import { useCallback, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { Shell } from "./components/Shell";
 import { NotesPane } from "./components/NotesPane";
-import { ReportPane, type Running } from "./components/ReportPane";
+import { ReportPane } from "./components/ReportPane";
 import { DraftsRail } from "./components/DraftsRail";
 import { EnginePanel } from "./components/EnginePanel";
 import { SettingsDrawer } from "./components/SettingsDrawer";
@@ -13,11 +12,8 @@ import { MissingInfo } from "./components/MissingInfo";
 import { E2_EXAMPLE_ANSWERS, FIXTURES } from "./fixtures/examples";
 import { loadSettings } from "./store/settings";
 import { useDrafts } from "./store/useDrafts";
-import { runEngine } from "./engine/run";
-import { EngineError, toEngineError } from "./engine/errors";
+import { createRuns, type RunState } from "./engine/runs";
 import { emptyReport, type Field } from "./domain/report";
-import { buildPrompt } from "./domain/prompt";
-import { scanSensitive } from "./domain/sensitivity";
 import type { Draft, Flag } from "./domain/types";
 import { inventionCheck, sourceTextFor } from "./domain/invention";
 import { FlaggedText } from "./components/FlagMark";
@@ -39,45 +35,17 @@ export default function App() {
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2400);
   }, []);
   const [tab, setTab] = useState<"notes" | "report">("notes");
-  const [running, setRunning] = useState<Record<string, Running>>({});
-  const [errors, setErrors] = useState<Record<string, EngineError | null>>({});
-
-  const runIds = useRef(new Map<string, number>());
-  const run = useCallback(
-    async (d: Draft, answers = d.answers) => {
-      const id = d.id;
-      const runId = (runIds.current.get(id) ?? 0) + 1;
-      runIds.current.set(id, runId);
-      const input = { notes: d.notes, answers, exampleId: d.exampleId, locked: d.locked, report: d.report };
-
-      const privacy = d.privacy === "hybrid" && !d.privacyOverride && scanSensitive(buildPrompt(input)).length
-        ? "local-only" : d.privacy;
-      if (privacy !== d.privacy || answers !== d.answers) update(id, { privacy, answers });
-      const fingerprint = inputFingerprint({ ...d, privacy, answers });
-      setRunning((r) => ({ ...r, [id]: { startedAt: Date.now(), privacy, live } }));
-      setErrors((e) => ({ ...e, [id]: null }));
-      setTab("report");
-      try {
-        const res = await runEngine(input, privacy, settings);
-        update(id, (current) => {
-          if (runIds.current.get(id) !== runId || inputFingerprint(current) !== fingerprint) {
-            toast("Inputs changed during the run. Run again to refresh the report.");
-            return {};
-          }
-          return { answers, report: res.report,
-            lastRun: { source: res.source, ms: res.ms, availabilityBefore: res.availabilityBefore, at: Date.now(), privacy, inputNotes: d.notes, runId } };
-        });
-      } catch (e) {
-        if (runIds.current.get(id) === runId) setErrors((x) => ({ ...x, [id]: toEngineError(e) }));
-      } finally {
-        if (runIds.current.get(id) === runId) setRunning((r) => {
-          const { [id]: _, ...rest } = r;
-          return rest;
-        });
-      }
-    },
-    [live, settings, update, toast],
-  );
+  const [runs, setRuns] = useState<Record<string, RunState>>({});
+  const runner = useMemo(() => createRuns(settings, {
+    update,
+    changed: (id, state) => setRuns((current) => ({ ...current, [id]: state })),
+  }), [settings, update]);
+  const run = useCallback(async (draft: Draft, answers = draft.answers) => {
+    setTab("report");
+    if (await runner.run(draft, answers) === "stale") {
+      toast("Inputs changed during the run. Run again to refresh the report.");
+    }
+  }, [runner, toast]);
 
   const flags = useMemo(
     () => (active?.report ? inventionCheck(active.report, sourceTextFor(active), active.acceptedFlags) : []),
@@ -143,12 +111,12 @@ export default function App() {
             onDelete={(id) => void remove(id)}
           />
         }
-        notes={<NotesPane draft={active} running={!!running[active.id]} onChange={(p) => update(active.id, p)} onRun={() => run(active)} />}
+        notes={<NotesPane draft={active} running={!!runs[active.id]?.running} onChange={(p) => update(active.id, p)} onRun={() => run(active)} />}
         report={
           <ReportPane
             draft={active}
-            running={running[active.id] ?? null}
-            error={errors[active.id] ?? null}
+            running={runs[active.id]?.running ?? null}
+            error={runs[active.id]?.error ?? null}
             onEdit={onEdit}
             onToggleLock={onToggleLock}
             onOpenEngine={() => setEngineOpen(true)}
@@ -160,7 +128,7 @@ export default function App() {
               <><RoutingLab /><EvidenceReview draft={active} /><MissingInfo
                 key={`${active.id}:${active.lastRun?.at ?? ""}`}
                 draft={active}
-                running={!!running[active.id]}
+                running={!!runs[active.id]?.running}
                 showExampleFill={showExampleFill}
                 exampleAnswers={sampleAnswers}
                 onSubmit={(answers) => run(active, answers)}
@@ -173,7 +141,7 @@ export default function App() {
         }
         tab={tab}
         onTab={setTab}
-        showReportTab={!!active.report || !!running[active.id] || !!errors[active.id]}
+        showReportTab={!!active.report || !!runs[active.id]?.running || !!runs[active.id]?.error}
       />
       <Toasts items={toasts} />
       {settingsOpen && <SettingsDrawer settings={settings} onClose={() => setSettingsOpen(false)} />}

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { Field, Report } from "../domain/report";
-import type { Draft, Privacy } from "../domain/types";
+import type { Draft } from "../domain/types";
 import type { EngineError } from "../engine/errors";
 import { EditableField, LockButton } from "./EditableField";
 import { StepsEditor } from "./StepsEditor";
@@ -8,7 +8,7 @@ import { SourceBadge, whyCloud } from "./SourceBadge";
 import { ErrorCard } from "./ErrorCard";
 import { IconPlus, IconX } from "./icons";
 
-export interface Running { startedAt: number; privacy: Privacy; live: boolean }
+import type { Running } from "../engine/runs";
 
 interface Props {
   draft: Draft;
