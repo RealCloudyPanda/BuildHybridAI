@@ -13,7 +13,9 @@ import { E2_EXAMPLE_ANSWERS, FIXTURES } from "./fixtures/examples";
 import { loadSettings } from "./store/settings";
 import { useDrafts } from "./store/useDrafts";
 import { createRuns, type RunState } from "./engine/runs";
-import { emptyReport, type Field } from "./domain/report";
+import type { Field } from "./domain/report";
+import { acceptFlag, editField, removeFlagged, toggleLock } from "./domain/edits";
+import { useToasts } from "./hooks/useToasts";
 import type { Draft, Flag } from "./domain/types";
 import { inventionCheck, sourceTextFor } from "./domain/invention";
 import { FlaggedText } from "./components/FlagMark";
@@ -28,12 +30,7 @@ export default function App() {
   const [railOpen, setRailOpen] = useState(false);
   const [engineOpen, setEngineOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [toasts, setToasts] = useState<{ id: number; text: string }[]>([]);
-  const toast = useCallback((text: string) => {
-    const id = Date.now() + Math.random();
-    setToasts((t) => [...t, { id, text }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2400);
-  }, []);
+  const { toasts, toast } = useToasts();
   const [tab, setTab] = useState<"notes" | "report">("notes");
   const [runs, setRuns] = useState<Record<string, RunState>>({});
   const runner = useMemo(() => createRuns(settings, {
@@ -62,18 +59,8 @@ export default function App() {
     return index >= 0 ? E2_EXAMPLE_ANSWERS[index] : "Not sure";
   });
 
-  const removeFlag = (f: Flag) =>
-    update(active.id, (d) => {
-      const r = d.report ?? emptyReport();
-      const strip = (s: string) => s.replace(new RegExp(f.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"), "").replace(/\s{2,}/g, " ").replace(/\s+([.,])/g, "$1").trim();
-      let next = { ...r };
-      if (f.field === "environment" && f.index !== undefined) next.environment = r.environment.filter((_, i) => i !== f.index);
-      else if (f.field === "steps" && f.index !== undefined) next.steps = r.steps.map((s, i) => (i === f.index ? strip(s) : s));
-      else if (f.field === "title" || f.field === "expected" || f.field === "actual") next = { ...next, [f.field]: strip(r[f.field]) };
-      return { report: next };
-    });
-  const keepFlag = (f: Flag) =>
-    update(active.id, (d) => ({ acceptedFlags: [...new Set([...d.acceptedFlags, f.text.toLowerCase()])] }));
+  const removeFlag = (f: Flag) => update(active.id, (d) => ({ report: removeFlagged(d.report, f) }));
+  const keepFlag = (f: Flag) => update(active.id, (d) => ({ acceptedFlags: acceptFlag(d.acceptedFlags, f) }));
   const renderPreview = (field: Field, index?: number) => {
     const fs = flags.filter((f) => f.field === field && f.index === index);
     if (!fs.length || !active.report) return undefined;
@@ -85,13 +72,8 @@ export default function App() {
   const simulate = () =>
     update(active.id, (d) => (d.report ? { report: { ...d.report, environment: [...d.report.environment, "Chrome 131"] } } : {}));
 
-  const onEdit = (field: Field, value: string | string[]) =>
-    update(active.id, (d) => ({
-      report: { ...(d.report ?? emptyReport()), [field]: value },
-      locked: d.locked.includes(field) ? d.locked : [...d.locked, field],
-    }));
-  const onToggleLock = (f: Field) =>
-    update(active.id, (d) => ({ locked: d.locked.includes(f) ? d.locked.filter((x) => x !== f) : [...d.locked, f] }));
+  const onEdit = (field: Field, value: string | string[]) => update(active.id, (d) => editField(d.report, d.locked, field, value));
+  const onToggleLock = (f: Field) => update(active.id, (d) => ({ locked: toggleLock(d.locked, f) }));
 
   return (
     <>
