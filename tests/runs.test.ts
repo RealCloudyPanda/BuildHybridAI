@@ -105,3 +105,16 @@ it("uses the offline Sample adapter and keeps locked fields through the caller i
   expect(h.records.get(draft.id)?.report?.expected).toBe("Keep this.");
   expect(h.records.get(draft.id)?.lastRun?.source).toBe("sample");
 });
+
+it("keeps the newest report when an older run finishes after it", async () => {
+  const first = pending(); const second = pending();
+  const h = harness(vi.fn<typeof runEngine>().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise));
+  const older = h.run(h.draft);
+  const newer = h.run(h.records.get(h.draft.id)!);
+  second.resolve({ ...result, report: { ...result.report, title: "Newest report" } });
+  expect(await newer).toBe("applied");
+  first.resolve({ ...result, report: { ...result.report, title: "Obsolete report" } });
+  expect(await older).toBe("superseded");
+  expect(h.records.get(h.draft.id)?.report?.title).toBe("Newest report");
+  expect(h.states.get(h.draft.id)).toEqual({ running: null, error: null });
+});
